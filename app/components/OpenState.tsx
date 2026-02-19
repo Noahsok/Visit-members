@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { Exhibition, Pour, SoundInfo, MemberData } from "../types";
+import type { Exhibition, SoundInfo, MemberData } from "../types";
 import Pulse from "./Pulse";
 import ArtworkCarousel from "./ArtworkCarousel";
-import FeaturedPour from "./FeaturedPour";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
 
 interface OpenStateProps {
   exhibition: Exhibition | null;
-  pour: Pour | null;
   sound: SoundInfo | null;
   member: MemberData;
   onCheckIn: (guestCount: number) => void;
@@ -20,7 +18,6 @@ interface OpenStateProps {
 
 export default function OpenState({
   exhibition,
-  pour,
   sound,
   member,
   onCheckIn,
@@ -142,13 +139,6 @@ export default function OpenState({
               {exhibition.statement}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Featured pour — inverted band */}
-      {pour && (
-        <div style={{ marginTop: 32 }}>
-          <FeaturedPour {...pour} />
         </div>
       )}
 

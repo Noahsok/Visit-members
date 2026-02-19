@@ -196,6 +196,7 @@ model Member {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
   expirationDate     DateTime?          @map("expiration_date") @db.Date
+  appAccess          AppAccess          @default(none) @map("app_access")
   checkIns           CheckIn[]
   renewalRequests    RenewalRequest[]
   // PWA relations
@@ -542,4 +543,10 @@ enum SyncStatus {
   partial
   needs_review
   failed
+}
+
+enum AppAccess {
+  none
+  preview
+  approved
 }

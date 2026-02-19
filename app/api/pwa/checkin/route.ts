@@ -42,10 +42,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (existing) {
+    const visitCount = await prisma.checkIn.count({
+      where: { memberId: payload.memberId },
+    });
     return NextResponse.json({
       success: true,
       message: "Already checked in",
       checkInId: existing.id,
+      visitCount,
     });
   }
 
@@ -58,9 +62,15 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // Count total visits including this new one
+  const visitCount = await prisma.checkIn.count({
+    where: { memberId: payload.memberId },
+  });
+
   return NextResponse.json({
     success: true,
     checkInId: checkIn.id,
+    visitCount,
   });
 }
 

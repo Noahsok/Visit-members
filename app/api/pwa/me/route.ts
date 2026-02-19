@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
 
+    // Count total check-ins for this member
+    const visitCount = await prisma.checkIn.count({
+      where: { memberId: member.id },
+    });
+
     const nameParts = (member.name || "").split(" ");
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
@@ -39,6 +44,8 @@ export async function GET(request: NextRequest) {
         guestAllowance: member.guestAllowance,
         joinedAt: member.joinedAt,
         expirationDate: member.expirationDate,
+        appAccess: member.appAccess,
+        visitCount,
       },
     });
   } catch (error) {

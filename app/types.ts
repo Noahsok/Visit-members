@@ -9,6 +9,8 @@ export interface MemberData {
   guestAllowance: number;
   joinedAt: string;
   expirationDate: string | null;
+  appAccess: "none" | "preview" | "approved";
+  visitCount: number;
 }
 
 export interface Artwork {
@@ -52,8 +54,3 @@ export interface MenuItem {
   price: number | null;
 }
 
-export interface VenueEvent {
-  id: string;
-  date: string;
-  event: string;
-}

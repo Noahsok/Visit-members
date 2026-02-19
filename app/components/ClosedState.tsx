@@ -1,19 +1,17 @@
 "use client";
 
-import type { Exhibition, VenueEvent } from "../types";
+import type { Exhibition } from "../types";
 import GhostText from "./GhostText";
 import Countdown from "./Countdown";
 
 interface ClosedStateProps {
   nextOpen: string;
   exhibition: Exhibition | null;
-  events: VenueEvent[];
 }
 
 export default function ClosedState({
   nextOpen,
   exhibition,
-  events,
 }: ClosedStateProps) {
   const featuredArtwork = exhibition?.artworks?.[0];
 
@@ -149,67 +147,24 @@ export default function ClosedState({
         </div>
       )}
 
-      {/* Upcoming events */}
-      {events.length > 0 && (
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <div className="rule" style={{ margin: "28px 20px 0" }} />
-          <div style={{ padding: "20px 20px 32px" }}>
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: 18,
-                fontWeight: 900,
-                marginBottom: 14,
-              }}
-            >
-              Upcoming
-            </div>
-            {events.map((evt) => (
-              <div
-                key={evt.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "14px 0",
-                  borderTop: "2px solid #1a1a1a",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 16,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {evt.event}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "system-ui",
-                      fontSize: 13,
-                      color: "#888",
-                      marginTop: 2,
-                    }}
-                  >
-                    {evt.date}
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div
-              style={{
-                fontFamily: "system-ui",
-                fontSize: 12,
-                color: "#bbb",
-                marginTop: 12,
-              }}
-            >
-              Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
-            </div>
-          </div>
+      {/* Hours footer */}
+      <div
+        style={{
+          padding: "32px 20px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "system-ui",
+            fontSize: 12,
+            color: "#bbb",
+          }}
+        >
+          Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
         </div>
-      )}
+      </div>
     </div>
   );
 }

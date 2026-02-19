@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem, VenueEvent } from "./types";
+import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem } from "./types";
 import ClosedState from "./components/ClosedState";
 import OpenState from "./components/OpenState";
 import CheckInDrawer from "./components/CheckInDrawer";
@@ -22,7 +22,6 @@ export default function Home() {
   const [pour, setPour] = useState<Pour | null>(null);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [sound, setSound] = useState<SoundInfo | null>(null);
-  const [events, setEvents] = useState<VenueEvent[]>([]);
   const [insiderTip, setInsiderTip] = useState<InsiderTip | null>(null);
 
   const getToken = () => localStorage.getItem("visit_token");
@@ -44,13 +43,12 @@ export default function Home() {
 
   const loadContent = useCallback(async () => {
     try {
-      const [exhibitionData, pourData, menuData, soundData, eventsData, tipData] =
+      const [exhibitionData, pourData, menuData, soundData, tipData] =
         await Promise.all([
           authFetch("/api/pwa/exhibition"),
           authFetch("/api/pwa/featured-pour"),
           authFetch("/api/pwa/menu"),
           authFetch("/api/pwa/sound"),
-          authFetch("/api/pwa/events"),
           authFetch("/api/pwa/insider-tip"),
         ]);
 
@@ -58,7 +56,6 @@ export default function Home() {
       setPour(pourData.pour);
       setMenu(menuData.menu || []);
       setSound(soundData.sound);
-      setEvents(eventsData.events || []);
       setInsiderTip(tipData.tip);
     } catch (e) {
       // Use cached data if offline
@@ -86,6 +83,12 @@ export default function Home() {
       // Cache member data for offline
       localStorage.setItem("visit_member", JSON.stringify(memberData));
 
+      // Access gate: redirect if no access
+      if (memberData.appAccess === "none") {
+        window.location.href = "/no-access";
+        return;
+      }
+
       if (statusData.isCheckedIn) {
         setGuestCount(0);
         setState("at-visit");
@@ -103,7 +106,12 @@ export default function Home() {
       // Try to use cached member data
       const cached = localStorage.getItem("visit_member");
       if (cached) {
-        setMember(JSON.parse(cached));
+        const cachedMember = JSON.parse(cached);
+        if (cachedMember.appAccess === "none") {
+          window.location.href = "/no-access";
+          return;
+        }
+        setMember(cachedMember);
         setState("closed"); // Default to closed if we can't reach server
       } else {
         window.location.href = "/login";
@@ -151,6 +159,11 @@ export default function Home() {
         setGuestCount(guests);
         setState("at-visit");
         setShowCheckInDrawer(true);
+        // Refresh member to get updated visitCount
+        authFetch("/api/pwa/me").then((meData) => {
+          setMember(meData.member);
+          localStorage.setItem("visit_member", JSON.stringify(meData.member));
+        });
         loadContent();
       }
     } catch (e) {
@@ -207,14 +220,12 @@ export default function Home() {
         <ClosedState
           nextOpen={nextOpen}
           exhibition={exhibition}
-          events={events}
         />
       )}
 
       {(state === "open" || state === "at-visit") && member && (
         <OpenState
           exhibition={exhibition}
-          pour={pour}
           sound={sound}
           member={member}
           onCheckIn={handleCheckIn}
@@ -228,7 +239,7 @@ export default function Home() {
           member={member}
           guestCount={guestCount}
           exhibition={exhibition}
-          pour={pour}
+          pour={member.appAccess === "approved" ? pour : null}
           sound={sound}
           insiderTip={insiderTip}
           menu={menu}
