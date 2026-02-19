@@ -36,7 +36,7 @@ export default function ClosedState({
       {/* Header */}
       <div
         style={{
-          padding: "14px 20px",
+          padding: "calc(env(safe-area-inset-top, 0px) + 14px) 20px 14px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
