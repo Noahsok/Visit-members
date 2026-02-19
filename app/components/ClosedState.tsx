@@ -192,7 +192,7 @@ export default function ClosedState({
                 marginTop: 12,
               }}
             >
-              Wed–Sat · 5pm–midnight · Newburgh, NY
+              Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
             </div>
           </div>
         </div>

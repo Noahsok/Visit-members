@@ -197,7 +197,7 @@ export default function OpenState({
             marginTop: 8,
           }}
         >
-          Wed–Sat, 5–midnight
+          Wed, Fri, Sat · 6pm–midnight
         </div>
       </div>
 
