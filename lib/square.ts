@@ -1,7 +1,7 @@
 import { Client } from "square/legacy";
 
 export const squareClient = new Client({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN,
+  accessToken: (process.env.SQUARE_ACCESS_TOKEN || "").trim(),
   environment: "production",
 });
 
