@@ -1,9 +1,7 @@
-const CACHE_NAME = "visit-members-v1";
+const CACHE_NAME = "visit-members-v7";
 
 // App shell files to precache
 const PRECACHE_URLS = [
-  "/",
-  "/login",
   "/manifest.json",
 ];
 
@@ -31,51 +29,30 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API, cache-first for static
+// Fetch: network-first for everything, cache fallback for offline
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   // Skip non-GET requests
   if (event.request.method !== "GET") return;
 
-  // API calls: network first, cache fallback
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache successful API responses
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline: serve from cache
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-
-  // Static assets: cache first, network fallback
+  // Network first, cache fallback
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(event.request).then((response) => {
-        // Cache new static assets
-        if (response.ok && !url.pathname.startsWith("/_next/webpack")) {
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses for offline use
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, clone);
           });
         }
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        // Offline: serve from cache
+        return caches.match(event.request);
+      })
   );
 });
 

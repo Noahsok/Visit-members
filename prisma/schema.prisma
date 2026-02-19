@@ -156,6 +156,7 @@ model Exhibition {
   artistId  String           @map("artist_id")
   venueId   String           @map("venue_id")
   title     String
+  statement String?
   startDate DateTime         @map("start_date") @db.Date
   endDate   DateTime         @map("end_date") @db.Date
   isActive  Boolean          @default(true) @map("is_active")
@@ -189,7 +190,7 @@ model Member {
   phone              String?
   tier               MemberTier         @default(classic)
   isActive           Boolean            @default(true) @map("is_active")
-  guestAllowance     Int                @default(1) @map("guest_allowance")
+  guestAllowance     Int                @default(2) @map("guest_allowance")
   notes              String?
   joinedAt           DateTime           @default(now()) @map("joined_at") @db.Date
   createdAt          DateTime           @default(now()) @map("created_at")

@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
       id: exhibition.id,
       artistName: exhibition.artist.name,
       title: exhibition.title,
+      statement: exhibition.statement,
       startDate: exhibition.startDate,
       endDate: exhibition.endDate,
       artworks: exhibition.artworks.map((a) => ({

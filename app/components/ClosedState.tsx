@@ -1,26 +1,13 @@
 "use client";
 
+import type { Exhibition, VenueEvent } from "../types";
 import GhostText from "./GhostText";
 import Countdown from "./Countdown";
-
-interface Exhibition {
-  artistName: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  artworks: { id: string; title: string; year?: string | null; imageUrl?: string | null }[];
-}
-
-interface Event {
-  id: string;
-  date: string;
-  event: string;
-}
 
 interface ClosedStateProps {
   nextOpen: string;
   exhibition: Exhibition | null;
-  events: Event[];
+  events: VenueEvent[];
 }
 
 export default function ClosedState({
@@ -56,8 +43,10 @@ export default function ClosedState({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          position: "relative",
-          zIndex: 1,
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          backgroundColor: "#f4f2ec",
         }}
       >
         <span
@@ -203,7 +192,7 @@ export default function ClosedState({
                 marginTop: 12,
               }}
             >
-              Wed\u2013Sat \u00B7 5pm\u2013midnight \u00B7 Newburgh, NY
+              Wed–Sat · 5pm–midnight · Newburgh, NY
             </div>
           </div>
         </div>

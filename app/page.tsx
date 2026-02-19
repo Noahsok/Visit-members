@@ -1,36 +1,29 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem, VenueEvent } from "./types";
 import ClosedState from "./components/ClosedState";
 import OpenState from "./components/OpenState";
-import AtVisitState from "./components/AtVisitState";
+import CheckInDrawer from "./components/CheckInDrawer";
+import MemberDrawer from "./components/MemberDrawer";
 
 type AppState = "loading" | "closed" | "open" | "at-visit";
-
-interface MemberData {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  tier: string;
-  guestAllowance: number;
-  joinedAt: string;
-  expirationDate: string | null;
-}
 
 export default function Home() {
   const [state, setState] = useState<AppState>("loading");
   const [member, setMember] = useState<MemberData | null>(null);
   const [guestCount, setGuestCount] = useState(0);
+  const [showMemberDrawer, setShowMemberDrawer] = useState(false);
+  const [showCheckInDrawer, setShowCheckInDrawer] = useState(false);
 
   // Content state
   const [nextOpen, setNextOpen] = useState("");
-  const [exhibition, setExhibition] = useState<any>(null);
-  const [pour, setPour] = useState<any>(null);
-  const [menu, setMenu] = useState<any[]>([]);
-  const [sound, setSound] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [insiderTip, setInsiderTip] = useState<any>(null);
+  const [exhibition, setExhibition] = useState<Exhibition | null>(null);
+  const [pour, setPour] = useState<Pour | null>(null);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [sound, setSound] = useState<SoundInfo | null>(null);
+  const [events, setEvents] = useState<VenueEvent[]>([]);
+  const [insiderTip, setInsiderTip] = useState<InsiderTip | null>(null);
 
   const getToken = () => localStorage.getItem("visit_token");
 
@@ -94,8 +87,9 @@ export default function Home() {
       localStorage.setItem("visit_member", JSON.stringify(memberData));
 
       if (statusData.isCheckedIn) {
-        setGuestCount(0); // Will be updated from check-in data
+        setGuestCount(0);
         setState("at-visit");
+        setShowCheckInDrawer(true);
       } else if (statusData.isOpen) {
         setState("open");
       } else {
@@ -156,13 +150,30 @@ export default function Home() {
       if (data.success) {
         setGuestCount(guests);
         setState("at-visit");
-        // Refresh content for at-visit specific data
+        setShowCheckInDrawer(true);
         loadContent();
       }
     } catch (e) {
       console.error("Check-in error:", e);
     }
   };
+
+  const handleLeave = async () => {
+    try {
+      const token = getToken();
+      await fetch("/api/pwa/checkin", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setShowCheckInDrawer(false);
+      setState("open");
+      setGuestCount(0);
+    } catch (e) {
+      console.error("Checkout error:", e);
+    }
+  };
+
+  const initial = member?.firstName?.[0]?.toUpperCase() || "?";
 
   // Loading state
   if (state === "loading") {
@@ -190,42 +201,60 @@ export default function Home() {
     );
   }
 
-  if (state === "closed") {
-    return (
-      <ClosedState
-        nextOpen={nextOpen}
-        exhibition={exhibition}
-        events={events}
-      />
-    );
-  }
+  return (
+    <>
+      {state === "closed" && (
+        <ClosedState
+          nextOpen={nextOpen}
+          exhibition={exhibition}
+          events={events}
+        />
+      )}
 
-  if (state === "open" && member) {
-    return (
-      <OpenState
-        exhibition={exhibition}
-        pour={pour}
-        menu={menu}
-        sound={sound}
-        member={member}
-        onCheckIn={handleCheckIn}
-      />
-    );
-  }
+      {(state === "open" || state === "at-visit") && member && (
+        <OpenState
+          exhibition={exhibition}
+          pour={pour}
+          sound={sound}
+          member={member}
+          onCheckIn={handleCheckIn}
+          isCheckedIn={state === "at-visit"}
+          onReopenDrawer={() => setShowCheckInDrawer(true)}
+        />
+      )}
 
-  if (state === "at-visit" && member) {
-    return (
-      <AtVisitState
-        member={member}
-        guestCount={guestCount}
-        exhibition={exhibition}
-        pour={pour}
-        sound={sound}
-        insiderTip={insiderTip}
-        menu={menu.map((m: any) => ({ name: m.name, spec: m.spec, price: m.price }))}
-      />
-    );
-  }
+      {showCheckInDrawer && member && (
+        <CheckInDrawer
+          member={member}
+          guestCount={guestCount}
+          exhibition={exhibition}
+          pour={pour}
+          sound={sound}
+          insiderTip={insiderTip}
+          menu={menu}
+          onLeave={handleLeave}
+          onDismiss={() => setShowCheckInDrawer(false)}
+        />
+      )}
 
-  return null;
+      {/* Member initial button — visible when logged in but not when check-in drawer is open */}
+      {member && state !== "loading" && state !== "at-visit" && (
+        <button
+          className="member-initial member-initial-light"
+          onClick={() => setShowMemberDrawer(true)}
+        >
+          {initial}
+        </button>
+      )}
+
+      {/* Member drawer overlay */}
+      {showMemberDrawer && member && (
+        <MemberDrawer
+          member={member}
+          exhibition={exhibition}
+          onClose={() => setShowMemberDrawer(false)}
+        />
+      )}
+    </>
+  );
 }

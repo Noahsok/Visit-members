@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, extractToken } from "@/lib/pwa-auth";
-import { getSquareMemberDetails } from "@/lib/square";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -17,30 +16,25 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get fresh data from Square
-    const details = await getSquareMemberDetails(payload.squareCustomerId);
-    if (!details) {
-      return NextResponse.json({ error: "Member not found in Square" }, { status: 404 });
+    // Read from local DB — Square data was synced at login
+    const member = await prisma.member.findUnique({
+      where: { id: payload.memberId },
+    });
+
+    if (!member) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
 
-    // Update local record
-    const member = await prisma.member.update({
-      where: { id: payload.memberId },
-      data: {
-        name: `${details.firstName} ${details.lastName}`.trim(),
-        email: details.email || undefined,
-        phone: details.phone || undefined,
-        tier: details.tier,
-        expirationDate: details.expiration ? new Date(details.expiration) : undefined,
-      },
-    });
+    const nameParts = (member.name || "").split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
 
     return NextResponse.json({
       member: {
         id: member.id,
         name: member.name,
-        firstName: details.firstName,
-        lastName: details.lastName,
+        firstName,
+        lastName,
         tier: member.tier,
         guestAllowance: member.guestAllowance,
         joinedAt: member.joinedAt,

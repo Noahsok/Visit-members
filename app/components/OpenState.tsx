@@ -1,73 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import GhostText from "./GhostText";
+import type { Exhibition, Pour, SoundInfo, MemberData } from "../types";
 import Pulse from "./Pulse";
 import ArtworkCarousel from "./ArtworkCarousel";
 import FeaturedPour from "./FeaturedPour";
-import MenuAccordion from "./MenuAccordion";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
-
-interface Exhibition {
-  artistName: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  artworks: {
-    id: string;
-    title: string;
-    medium?: string | null;
-    year?: string | null;
-    imageUrl?: string | null;
-  }[];
-}
-
-interface Pour {
-  drinkName: string;
-  spec?: string | null;
-  tastingNote?: string | null;
-  imageUrl?: string | null;
-}
-
-interface MenuItem {
-  id: string;
-  name: string;
-  spec: string;
-  price: number | null;
-  category: string;
-}
-
-interface SoundInfo {
-  djName: string;
-  genre?: string | null;
-}
-
-interface MemberData {
-  id: string;
-  name: string;
-  tier: string;
-  guestAllowance: number;
-}
 
 interface OpenStateProps {
   exhibition: Exhibition | null;
   pour: Pour | null;
-  menu: MenuItem[];
   sound: SoundInfo | null;
   member: MemberData;
-  description?: string | null;
   onCheckIn: (guestCount: number) => void;
+  isCheckedIn?: boolean;
+  onReopenDrawer?: () => void;
 }
 
 export default function OpenState({
   exhibition,
   pour,
-  menu,
   sound,
   member,
-  description,
   onCheckIn,
+  isCheckedIn = false,
+  onReopenDrawer,
 }: OpenStateProps) {
   const [showGuests, setShowGuests] = useState(false);
 
@@ -79,10 +37,18 @@ export default function OpenState({
     }
   };
 
+  const formatDateRange = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: "numeric" };
+    return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
+  };
+
   return (
     <div
       className="theme-light state-transition"
-      style={{ minHeight: "100vh", overflow: "hidden" }}
+      style={{ minHeight: "100vh" }}
     >
       {/* Header */}
       <div
@@ -91,6 +57,10 @@ export default function OpenState({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          backgroundColor: "#f4f2ec",
         }}
       >
         <span
@@ -110,9 +80,9 @@ export default function OpenState({
         </div>
       </div>
 
-      {/* Artist + show title */}
+      {/* Exhibition hero */}
       {exhibition && (
-        <div style={{ position: "relative", padding: "16px 20px 0" }}>
+        <div style={{ position: "relative", padding: "24px 20px 0" }}>
           <h2
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -121,98 +91,114 @@ export default function OpenState({
               lineHeight: 0.85,
               margin: 0,
               letterSpacing: "-0.04em",
+              position: "relative",
+              zIndex: 2,
             }}
           >
             {exhibition.artistName}
           </h2>
+
+          {/* Artwork carousel */}
+          <ArtworkCarousel artworks={exhibition.artworks} />
+
+          {/* Show title */}
           <div
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: 24,
               fontStyle: "italic",
               color: "#555",
-              marginTop: 6,
+              marginTop: 16,
             }}
           >
             {exhibition.title}
           </div>
 
-          {/* Artwork carousel */}
-          <div style={{ marginTop: 20 }}>
-            <ArtworkCarousel artworks={exhibition.artworks} />
-          </div>
-
-          {/* Curatorial text label */}
+          {/* Date range */}
           <div
             style={{
               fontFamily: "system-ui",
               fontSize: 14,
               fontWeight: 700,
-              marginTop: 12,
+              marginTop: 8,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}
           >
-            On view
+            {formatDateRange(exhibition.startDate, exhibition.endDate)}
           </div>
+
+          {/* Exhibition statement */}
+          {exhibition.statement && (
+            <div
+              style={{
+                fontFamily: "system-ui",
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: "#555",
+                marginTop: 20,
+              }}
+            >
+              {exhibition.statement}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Pull quote / curatorial description */}
-      {description && (
-        <div style={{ padding: "28px 20px" }}>
-          <div className="rule" />
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 18,
-              fontStyle: "italic",
-              fontWeight: 400,
-              lineHeight: 1.5,
-              padding: "20px 0",
-            }}
-          >
-            {description}
-          </div>
-          <div className="rule" />
+      {/* Featured pour — inverted band */}
+      {pour && (
+        <div style={{ marginTop: 32 }}>
+          <FeaturedPour {...pour} />
         </div>
       )}
 
-      {/* Featured pour */}
-      {pour && <FeaturedPour {...pour} />}
-
-      {/* Full menu accordion */}
-      {menu.length > 0 && <MenuAccordion items={menu} />}
-
-      {/* Sound */}
+      {/* Sound bar */}
       {sound && <SoundBar djName={sound.djName} genre={sound.genre} />}
 
-      {/* Hours */}
+      {/* CTA + hours — sticky bottom */}
       <div
         style={{
-          padding: "20px",
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
+          position: "sticky",
+          bottom: 0,
+          zIndex: 100,
+          backgroundColor: "#f4f2ec",
+          padding: "16px 20px 32px",
         }}
       >
-        <span style={{ fontFamily: "system-ui", fontSize: 12, color: "#999" }}>
-          Wed\u2013Sat, 5\u2013midnight
-        </span>
-      </div>
-
-      {/* Check-in button */}
-      <div style={{ padding: "0 20px 48px" }}>
-        <button
-          onClick={handleCheckInClick}
-          className="btn-primary"
+        {isCheckedIn ? (
+          <button
+            onClick={onReopenDrawer}
+            className="btn-primary"
+            style={{
+              background: "#1a1a1a",
+              color: "#f4f2ec",
+            }}
+          >
+            Checked in
+          </button>
+        ) : (
+          <button
+            onClick={handleCheckInClick}
+            className="btn-primary"
+            style={{
+              background: "#1a1a1a",
+              color: "#f4f2ec",
+            }}
+          >
+            I&apos;m here
+          </button>
+        )}
+        <div
           style={{
-            background: "#1a1a1a",
-            color: "#f4f2ec",
+            fontFamily: "system-ui",
+            fontSize: 12,
+            color: "#999",
+            textAlign: "right",
+            marginTop: 8,
           }}
         >
-          I&apos;m here
-        </button>
+          Wed–Sat, 5–midnight
+        </div>
       </div>
 
       {/* Guest selector overlay */}

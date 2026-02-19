@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-interface Artwork {
-  id: string;
-  title: string;
-  medium?: string | null;
-  year?: string | null;
-  imageUrl?: string | null;
-}
+import type { Artwork } from "../types";
 
 interface ArtworkCarouselProps {
   artworks: Artwork[];
@@ -25,39 +18,25 @@ export default function ArtworkCarousel({ artworks }: ArtworkCarouselProps) {
 
   return (
     <div>
-      <div
-        className="tap-cycle"
-        onClick={next}
-        style={{ display: "inline-block" }}
-      >
-        {current.imageUrl ? (
+      {current.imageUrl && (
+        <div
+          className="tap-cycle"
+          onClick={next}
+          style={{ display: "inline-block", marginTop: -20, position: "relative", zIndex: 1 }}
+        >
           <img
             src={current.imageUrl}
             alt={current.title}
             style={{ width: "55%", display: "block" }}
           />
-        ) : (
-          <div
-            style={{
-              width: "55%",
-              aspectRatio: "3/4",
-              background: "rgba(0,0,0,0.05)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "system-ui",
-              fontSize: 13,
-              opacity: 0.3,
-            }}
-          >
-            No image
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div
+        className="tap-cycle"
+        onClick={next}
         style={{
-          marginTop: 12,
+          marginTop: current.imageUrl ? 12 : 0,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
@@ -86,9 +65,11 @@ export default function ArtworkCarousel({ artworks }: ArtworkCarouselProps) {
             </span>
           )}
         </div>
-        <span style={{ fontFamily: "system-ui", fontSize: 11, color: "#bbb" }}>
-          {index + 1}/{artworks.length} — tap
-        </span>
+        {artworks.length > 1 && (
+          <span style={{ fontFamily: "system-ui", fontSize: 11, color: "#bbb" }}>
+            {index + 1}/{artworks.length} — tap
+          </span>
+        )}
       </div>
 
       {current.medium && (

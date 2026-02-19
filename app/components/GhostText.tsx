@@ -20,8 +20,8 @@ export default function GhostText({
   dark = false,
 }: GhostTextProps) {
   const color = dark
-    ? "rgba(244,242,236,0.06)"
-    : "rgba(26,26,26,0.07)";
+    ? "rgba(244,242,236,0.08)"
+    : "rgba(26,26,26,0.05)";
 
   return (
     <div
