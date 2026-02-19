@@ -253,6 +253,11 @@ export default function Home() {
           member={member}
           exhibition={exhibition}
           onClose={() => setShowMemberDrawer(false)}
+          onLogout={() => {
+            localStorage.removeItem("visit_token");
+            localStorage.removeItem("visit_member");
+            window.location.href = "/login";
+          }}
         />
       )}
     </>

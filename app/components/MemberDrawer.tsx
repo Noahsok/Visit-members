@@ -10,12 +10,14 @@ interface MemberDrawerProps {
   member: MemberData;
   exhibition: Exhibition | null;
   onClose: () => void;
+  onLogout: () => void;
 }
 
 export default function MemberDrawer({
   member,
   exhibition,
   onClose,
+  onLogout,
 }: MemberDrawerProps) {
   return (
     <DrawerShell onClose={onClose}>
@@ -34,7 +36,28 @@ export default function MemberDrawer({
           {exhibition && <ArtworkList exhibition={exhibition} tier={member.tier} />}
 
           {/* Footer */}
-          <div style={{ padding: "32px 20px 48px", textAlign: "center" }}>
+          <div
+            style={{
+              padding: "32px 20px 48px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <button
+              onClick={() => animateClose(onLogout)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(244,242,236,0.35)",
+                fontFamily: "system-ui",
+                fontSize: 13,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Log out
+            </button>
             <button
               onClick={() => animateClose()}
               style={{
