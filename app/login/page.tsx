@@ -71,11 +71,11 @@ export default function LoginPage() {
     <div
       className="theme-dark"
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
-        padding: "0 24px 60px",
+        padding: "env(safe-area-inset-top) 24px calc(env(safe-area-inset-bottom) + 60px)",
         opacity: show ? 1 : 0,
         transition: "opacity 0.4s",
         position: "relative",

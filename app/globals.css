@@ -39,12 +39,10 @@ body {
   color: #f4f2ec;
 }
 
-/* PWA standalone overrides */
+/* PWA standalone — background matches theme to avoid white flash */
 @media all and (display-mode: standalone) {
-  body {
-    /* safe area for notch */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+  html {
+    background: #1a1a1a;
   }
 }
 
