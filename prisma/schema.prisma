@@ -246,15 +246,18 @@ model RenewalRequest {
 }
 
 model VenueConfig {
-  id           String       @id @default(uuid())
-  venueId      String       @unique @map("venue_id")
-  currentShow  String?      @map("current_show")
-  showEndDate  String?      @map("show_end_date")
-  galleryHours String?      @map("gallery_hours")
-  galleryTimes String?      @map("gallery_times")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  venue        Venue        @relation(fields: [venueId], references: [id])
-  events       VenueEvent[]
+  id               String       @id @default(uuid())
+  venueId          String       @unique @map("venue_id")
+  currentShow      String?      @map("current_show")
+  showEndDate      String?      @map("show_end_date")
+  galleryHours     String?      @map("gallery_hours")
+  galleryTimes     String?      @map("gallery_times")
+  forceOpen        Boolean      @default(false) @map("force_open")
+  forceClosed      Boolean      @default(false) @map("force_closed")
+  lateNightClose   String?      @map("late_night_close")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  venue            Venue        @relation(fields: [venueId], references: [id])
+  events           VenueEvent[]
 
   @@map("venue_configs")
 }

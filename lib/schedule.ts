@@ -1,10 +1,13 @@
 /**
- * Visit operating hours: Wednesday–Saturday, 5:00 PM – midnight ET.
+ * Visit operating hours: Wednesday, Friday, Saturday — 6:00 PM – midnight ET.
+ * Supports admin overrides: force open, force closed, late night close time.
  */
+
+import { prisma } from "./prisma";
+import { getDefaultVenueId } from "./venue";
 
 function getETDate(now?: Date): Date {
   const d = now || new Date();
-  // Create a date string in ET, then parse it back
   const etString = d.toLocaleString("en-US", {
     timeZone: "America/New_York",
   });
@@ -17,26 +20,65 @@ export interface ScheduleStatus {
   opensToday: boolean;
 }
 
-// Open days: Wednesday (3), Thursday (4), Friday (5), Saturday (6)
-const OPEN_DAYS = new Set([3, 4, 5, 6]);
-const OPEN_HOUR = 17; // 5 PM
-const CLOSE_HOUR = 0; // midnight (next day)
+// Open days: Wednesday (3), Friday (5), Saturday (6)
+const OPEN_DAYS = new Set([3, 5, 6]);
+const OPEN_HOUR = 18; // 6 PM
 
-export function getSchedule(now?: Date): ScheduleStatus {
+interface ScheduleOverride {
+  forceOpen: boolean;
+  forceClosed: boolean;
+  lateNightClose: string | null;
+}
+
+async function getOverride(): Promise<ScheduleOverride | null> {
+  try {
+    const venueId = await getDefaultVenueId();
+    const config = await prisma.venueConfig.findUnique({
+      where: { venueId },
+      select: { forceOpen: true, forceClosed: true, lateNightClose: true },
+    });
+    return config;
+  } catch {
+    return null;
+  }
+}
+
+export async function getSchedule(now?: Date): Promise<ScheduleStatus> {
   const et = getETDate(now);
   const day = et.getDay();
   const hour = et.getHours();
+  const minutes = et.getMinutes();
 
-  // Check if currently open
-  // Open = it's an open day and time is >= 17:00, OR
-  // it's the day after an open day (Thu-Sun 0:00) and time is 0:00 (midnight edge)
+  const override = await getOverride();
+
+  // Force closed by admin
+  if (override?.forceClosed) {
+    return { isOpen: false, nextOpen: findNextOpen(et), opensToday: false };
+  }
+
+  // Force open by admin
+  if (override?.forceOpen) {
+    return { isOpen: true, nextOpen: findNextOpen(et), opensToday: false };
+  }
+
+  // Late night override — venue stays open past midnight
+  // e.g. lateNightClose = "02:00" means open until 2 AM
+  if (override?.lateNightClose) {
+    const [closeH, closeM] = override.lateNightClose.split(":").map(Number);
+    const prevDay = day === 0 ? 6 : day - 1;
+
+    // If it's early morning and the previous day was an open day
+    if (hour < closeH || (hour === closeH && minutes < (closeM || 0))) {
+      if (OPEN_DAYS.has(prevDay)) {
+        return { isOpen: true, nextOpen: findNextOpen(et), opensToday: false };
+      }
+    }
+  }
+
+  // Normal schedule
   const isOpen = OPEN_DAYS.has(day) && hour >= OPEN_HOUR;
-
-  // Find next opening time
-  const nextOpen = findNextOpen(et);
-
-  // Check if venue opens later today
   const opensToday = OPEN_DAYS.has(day) && hour < OPEN_HOUR;
+  const nextOpen = findNextOpen(et);
 
   return { isOpen, nextOpen, opensToday };
 }
@@ -44,13 +86,11 @@ export function getSchedule(now?: Date): ScheduleStatus {
 function findNextOpen(et: Date): Date {
   const next = new Date(et);
 
-  // If we're before opening time on an open day, next open is today at 5pm
   if (OPEN_DAYS.has(next.getDay()) && next.getHours() < OPEN_HOUR) {
     next.setHours(OPEN_HOUR, 0, 0, 0);
     return next;
   }
 
-  // Otherwise, find the next open day
   for (let i = 1; i <= 7; i++) {
     const check = new Date(et);
     check.setDate(check.getDate() + i);
@@ -60,7 +100,6 @@ function findNextOpen(et: Date): Date {
     }
   }
 
-  // Fallback (shouldn't reach)
   const fallback = new Date(et);
   fallback.setDate(fallback.getDate() + 7);
   fallback.setHours(OPEN_HOUR, 0, 0, 0);

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  const schedule = getSchedule();
+  const schedule = await getSchedule();
 
   // Check if member is checked in today
   const today = new Date();
