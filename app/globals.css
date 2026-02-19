@@ -1,0 +1,168 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Light theme (closed + open states) */
+.theme-light {
+  background: #f4f2ec;
+  color: #1a1a1a;
+}
+
+/* Dark theme (login + at-visit states) */
+.theme-dark {
+  background: #1a1a1a;
+  color: #f4f2ec;
+}
+
+/* PWA standalone overrides */
+@media all and (display-mode: standalone) {
+  body {
+    /* safe area for notch */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Transition wrapper */
+.state-transition {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ghost text */
+.ghost-text {
+  position: absolute;
+  font-family: "Voyage", Georgia, serif;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Thick rules */
+.rule {
+  height: 3px;
+  background: currentColor;
+}
+
+.rule-thin {
+  height: 1px;
+  background: currentColor;
+  opacity: 0.1;
+}
+
+/* Accordion */
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+}
+
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.accordion-content[data-open="false"] {
+  max-height: 0;
+  opacity: 0;
+}
+
+.accordion-content[data-open="true"] {
+  max-height: 2000px;
+  opacity: 1;
+}
+
+/* Button base */
+.btn-primary {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+/* Waveform bars */
+.wave-bar {
+  transition: height 0.09s ease;
+}
+
+/* Image tap indicator */
+.tap-cycle {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Inverted band (for sound section) */
+.band-inverted {
+  background: #1a1a1a;
+  color: #f4f2ec;
+}
+
+.theme-dark .band-inverted {
+  background: rgba(244, 242, 236, 0.05);
+  color: #f4f2ec;
+}
+
+/* Input styling */
+input[type="tel"] {
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 2px solid currentColor;
+  background: transparent;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  color: inherit;
+  outline: none;
+}
+
+input[type="tel"]::placeholder {
+  color: inherit;
+  opacity: 0.3;
+}
