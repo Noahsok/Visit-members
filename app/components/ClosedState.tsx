@@ -30,7 +30,6 @@ export default function ClosedState({
       className="theme-light state-transition"
       style={{
         minHeight: "100vh",
-        overflow: "hidden",
         position: "relative",
       }}
     >
@@ -99,6 +98,20 @@ export default function ClosedState({
           >
             {formatDateRange(exhibition.startDate, exhibition.endDate)}
           </div>
+
+          {exhibition.statement && (
+            <div
+              style={{
+                fontFamily: "system-ui",
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: "#555",
+                marginTop: 20,
+              }}
+            >
+              {exhibition.statement}
+            </div>
+          )}
         </div>
       )}
 
