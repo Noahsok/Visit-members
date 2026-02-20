@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Exhibition, Artwork } from "../types";
+import { useState, useRef } from "react";
+import type { Exhibition } from "../types";
 import GhostText from "./GhostText";
 import Countdown from "./Countdown";
 
@@ -10,87 +10,13 @@ interface ClosedStateProps {
   exhibition: Exhibition | null;
 }
 
-function ArtworkDetail({
-  work,
-  onClose,
-}: {
-  work: Artwork;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        background: "rgba(0,0,0,0.92)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px)",
-        animation: "fadeIn 0.25s ease-out",
-      }}
-    >
-      {work.imageUrl && (
-        <img
-          src={work.imageUrl}
-          alt={work.title}
-          style={{
-            maxWidth: "92%",
-            maxHeight: "70vh",
-            objectFit: "contain",
-            display: "block",
-          }}
-        />
-      )}
-      <div
-        style={{
-          marginTop: 20,
-          textAlign: "center",
-          color: "#f4f2ec",
-          maxWidth: "85%",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: 22,
-            fontStyle: "italic",
-            fontWeight: 400,
-          }}
-        >
-          {work.title}
-          {work.year && (
-            <span style={{ opacity: 0.4, fontStyle: "normal", fontSize: 16 }}>
-              {" "}({work.year})
-            </span>
-          )}
-        </div>
-        {work.medium && (
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 13,
-              opacity: 0.45,
-              marginTop: 8,
-              lineHeight: 1.5,
-            }}
-          >
-            {work.medium}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function ClosedState({
   nextOpen,
   exhibition,
 }: ClosedStateProps) {
-  const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
+  const [statementExpanded, setStatementExpanded] = useState(false);
+
+  const heroArtwork = exhibition?.artworks?.[0];
 
   const formatDateRange = (start: string, end: string) => {
     const s = new Date(start);
@@ -175,82 +101,109 @@ export default function ClosedState({
               {formatDateRange(exhibition.startDate, exhibition.endDate)}
             </div>
 
+            {/* Statement — expandable */}
             {exhibition.statement && (
               <div
+                onClick={() => setStatementExpanded(!statementExpanded)}
                 style={{
-                  fontFamily: "system-ui",
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  color: "#555",
-                  marginTop: 20,
+                  marginTop: 16,
+                  cursor: "pointer",
+                  overflow: "hidden",
                 }}
               >
-                {exhibition.statement}
+                <div
+                  style={{
+                    fontFamily: "system-ui",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: "#999",
+                    marginBottom: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  Exhibition statement
+                  <span
+                    style={{
+                      display: "inline-block",
+                      transition: "transform 0.3s ease",
+                      transform: statementExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                      fontSize: 8,
+                    }}
+                  >
+                    ▼
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontFamily: "system-ui",
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: "#555",
+                    maxHeight: statementExpanded ? 500 : 0,
+                    opacity: statementExpanded ? 1 : 0,
+                    transition: "max-height 0.4s ease, opacity 0.3s ease",
+                  }}
+                >
+                  {exhibition.statement}
+                </div>
               </div>
             )}
           </div>
 
-          {/* All artworks — large images */}
-          <div style={{ padding: "28px 20px 0" }}>
-            {exhibition.artworks.map((work) => (
-              <div
-                key={work.id}
-                onClick={() => setSelectedWork(work)}
+          {/* Hero artwork — single image */}
+          {heroArtwork?.imageUrl && (
+            <div style={{ padding: "28px 20px 0" }}>
+              <img
+                src={heroArtwork.imageUrl}
+                alt={heroArtwork.title}
                 style={{
-                  marginBottom: 24,
-                  cursor: "pointer",
+                  width: "100%",
+                  display: "block",
+                }}
+              />
+              <div
+                style={{
+                  marginTop: 8,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
                 }}
               >
-                {work.imageUrl && (
-                  <img
-                    src={work.imageUrl}
-                    alt={work.title}
-                    style={{
-                      width: "100%",
-                      display: "block",
-                    }}
-                  />
-                )}
-                <div
+                <span
                   style={{
-                    marginTop: 8,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: 14,
+                    fontStyle: "italic",
+                    color: "#555",
                   }}
                 >
+                  {heroArtwork.title}
+                </span>
+                {heroArtwork.year && (
                   <span
                     style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 14,
-                      fontStyle: "italic",
-                      color: "#555",
+                      fontFamily: "system-ui",
+                      fontSize: 11,
+                      color: "#bbb",
                     }}
                   >
-                    {work.title}
+                    {heroArtwork.year}
                   </span>
-                  {work.year && (
-                    <span
-                      style={{
-                        fontFamily: "system-ui",
-                        fontSize: 11,
-                        color: "#bbb",
-                      }}
-                    >
-                      {work.year}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Hours footer */}
       <div
         style={{
-          padding: "12px 20px 32px",
+          padding: "32px 20px",
           position: "relative",
           zIndex: 1,
         }}
@@ -265,14 +218,6 @@ export default function ClosedState({
           Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
         </div>
       </div>
-
-      {/* Artwork detail popup */}
-      {selectedWork && (
-        <ArtworkDetail
-          work={selectedWork}
-          onClose={() => setSelectedWork(null)}
-        />
-      )}
     </div>
   );
 }
