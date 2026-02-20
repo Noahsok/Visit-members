@@ -1,6 +1,7 @@
 "use client";
 
-import type { Exhibition } from "../types";
+import { useState } from "react";
+import type { Exhibition, Artwork } from "../types";
 import GhostText from "./GhostText";
 import Countdown from "./Countdown";
 
@@ -9,11 +10,87 @@ interface ClosedStateProps {
   exhibition: Exhibition | null;
 }
 
+function ArtworkDetail({
+  work,
+  onClose,
+}: {
+  work: Artwork;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(0,0,0,0.92)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px)",
+        animation: "fadeIn 0.25s ease-out",
+      }}
+    >
+      {work.imageUrl && (
+        <img
+          src={work.imageUrl}
+          alt={work.title}
+          style={{
+            maxWidth: "92%",
+            maxHeight: "70vh",
+            objectFit: "contain",
+            display: "block",
+          }}
+        />
+      )}
+      <div
+        style={{
+          marginTop: 20,
+          textAlign: "center",
+          color: "#f4f2ec",
+          maxWidth: "85%",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: 22,
+            fontStyle: "italic",
+            fontWeight: 400,
+          }}
+        >
+          {work.title}
+          {work.year && (
+            <span style={{ opacity: 0.4, fontStyle: "normal", fontSize: 16 }}>
+              {" "}({work.year})
+            </span>
+          )}
+        </div>
+        {work.medium && (
+          <div
+            style={{
+              fontFamily: "system-ui",
+              fontSize: 13,
+              opacity: 0.45,
+              marginTop: 8,
+              lineHeight: 1.5,
+            }}
+          >
+            {work.medium}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ClosedState({
   nextOpen,
   exhibition,
 }: ClosedStateProps) {
-  const featuredArtwork = exhibition?.artworks?.[0];
+  const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
 
   const formatDateRange = (start: string, end: string) => {
     const s = new Date(start);
@@ -60,89 +137,112 @@ export default function ClosedState({
 
       {/* Exhibition info */}
       {exhibition && (
-        <div style={{ padding: "40px 20px 0", position: "relative", zIndex: 1 }}>
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 56,
-              fontWeight: 900,
-              lineHeight: 0.9,
-              margin: 0,
-              letterSpacing: "-0.03em",
-            }}
-          >
-            {exhibition.artistName}
-          </h2>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 28,
-              fontStyle: "italic",
-              color: "#555",
-              marginTop: 8,
-            }}
-          >
-            {exhibition.title}
-          </div>
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 14,
-              fontWeight: 700,
-              marginTop: 10,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {formatDateRange(exhibition.startDate, exhibition.endDate)}
-          </div>
-
-          {exhibition.statement && (
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ padding: "40px 20px 0" }}>
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 56,
+                fontWeight: 900,
+                lineHeight: 0.9,
+                margin: 0,
+                letterSpacing: "-0.03em",
+              }}
+            >
+              {exhibition.artistName}
+            </h2>
+            <div
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 28,
+                fontStyle: "italic",
+                color: "#555",
+                marginTop: 8,
+              }}
+            >
+              {exhibition.title}
+            </div>
             <div
               style={{
                 fontFamily: "system-ui",
                 fontSize: 14,
-                lineHeight: 1.6,
-                color: "#555",
-                marginTop: 20,
-              }}
-            >
-              {exhibition.statement}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Featured artwork */}
-      {featuredArtwork?.imageUrl && (
-        <div style={{ padding: "24px 20px 0", position: "relative", zIndex: 1 }}>
-          <img
-            src={featuredArtwork.imageUrl}
-            alt={featuredArtwork.title}
-            style={{ width: "55%", display: "block" }}
-          />
-          <div style={{ marginTop: 8 }}>
-            <span
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: 14,
                 fontWeight: 700,
+                marginTop: 10,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
               }}
             >
-              {featuredArtwork.title}
-            </span>
-            {featuredArtwork.year && (
-              <span
+              {formatDateRange(exhibition.startDate, exhibition.endDate)}
+            </div>
+
+            {exhibition.statement && (
+              <div
                 style={{
                   fontFamily: "system-ui",
-                  fontSize: 12,
-                  color: "#999",
-                  marginLeft: 8,
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: "#555",
+                  marginTop: 20,
                 }}
               >
-                {featuredArtwork.year}
-              </span>
+                {exhibition.statement}
+              </div>
             )}
+          </div>
+
+          {/* All artworks — large images */}
+          <div style={{ padding: "28px 20px 0" }}>
+            {exhibition.artworks.map((work) => (
+              <div
+                key={work.id}
+                onClick={() => setSelectedWork(work)}
+                style={{
+                  marginBottom: 24,
+                  cursor: "pointer",
+                }}
+              >
+                {work.imageUrl && (
+                  <img
+                    src={work.imageUrl}
+                    alt={work.title}
+                    style={{
+                      width: "100%",
+                      display: "block",
+                    }}
+                  />
+                )}
+                <div
+                  style={{
+                    marginTop: 8,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: 14,
+                      fontStyle: "italic",
+                      color: "#555",
+                    }}
+                  >
+                    {work.title}
+                  </span>
+                  {work.year && (
+                    <span
+                      style={{
+                        fontFamily: "system-ui",
+                        fontSize: 11,
+                        color: "#bbb",
+                      }}
+                    >
+                      {work.year}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -150,7 +250,7 @@ export default function ClosedState({
       {/* Hours footer */}
       <div
         style={{
-          padding: "32px 20px",
+          padding: "12px 20px 32px",
           position: "relative",
           zIndex: 1,
         }}
@@ -165,6 +265,14 @@ export default function ClosedState({
           Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
         </div>
       </div>
+
+      {/* Artwork detail popup */}
+      {selectedWork && (
+        <ArtworkDetail
+          work={selectedWork}
+          onClose={() => setSelectedWork(null)}
+        />
+      )}
     </div>
   );
 }
