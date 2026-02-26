@@ -21,7 +21,7 @@ export default function ClosedState({
   const formatDateRange = (start: string, end: string) => {
     const s = new Date(start);
     const e = new Date(end);
-    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone: "UTC" };
     const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: "numeric" };
     return `${s.toLocaleDateString("en-US", opts)} \u2013 ${e.toLocaleDateString("en-US", yearOpts)}`;
   };
