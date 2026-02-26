@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Exhibition, SoundInfo, MemberData } from "../types";
+import type { Exhibition, SoundInfo, MemberData, Artwork } from "../types";
 import Pulse from "./Pulse";
-import ArtworkCarousel from "./ArtworkCarousel";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
 
@@ -16,6 +15,82 @@ interface OpenStateProps {
   onReopenDrawer?: () => void;
 }
 
+function ArtworkDetail({
+  work,
+  onClose,
+}: {
+  work: Artwork;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(0,0,0,0.92)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px)",
+        animation: "fadeIn 0.25s ease-out",
+      }}
+    >
+      {work.imageUrl && (
+        <img
+          src={work.imageUrl}
+          alt={work.title}
+          style={{
+            maxWidth: "92%",
+            maxHeight: "70vh",
+            objectFit: "contain",
+            display: "block",
+          }}
+        />
+      )}
+      <div
+        style={{
+          marginTop: 20,
+          textAlign: "center",
+          color: "#f4f2ec",
+          maxWidth: "85%",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: 22,
+            fontStyle: "italic",
+            fontWeight: 400,
+          }}
+        >
+          {work.title}
+          {work.year && (
+            <span style={{ opacity: 0.4, fontStyle: "normal", fontSize: 16 }}>
+              {" "}({work.year})
+            </span>
+          )}
+        </div>
+        {work.medium && (
+          <div
+            style={{
+              fontFamily: "system-ui",
+              fontSize: 13,
+              opacity: 0.45,
+              marginTop: 8,
+              lineHeight: 1.5,
+            }}
+          >
+            {work.medium}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function OpenState({
   exhibition,
   sound,
@@ -25,6 +100,8 @@ export default function OpenState({
   onReopenDrawer,
 }: OpenStateProps) {
   const [showGuests, setShowGuests] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [statementExpanded, setStatementExpanded] = useState(false);
 
   const handleCheckInClick = () => {
     if (member.tier === "enthusiast" && member.guestAllowance > 0) {
@@ -41,6 +118,8 @@ export default function OpenState({
     const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: "numeric" };
     return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
   };
+
+  const heroArtwork = exhibition?.artworks?.[0];
 
   return (
     <div
@@ -95,8 +174,68 @@ export default function OpenState({
             {exhibition.artistName}
           </h2>
 
-          {/* Artwork carousel */}
-          <ArtworkCarousel artworks={exhibition.artworks} />
+          {/* Hero image — single, clickable */}
+          {heroArtwork?.imageUrl && (
+            <div
+              onClick={() => setShowFullImage(true)}
+              style={{ display: "inline-block", marginTop: -20, position: "relative", zIndex: 1, cursor: "pointer" }}
+            >
+              <img
+                src={heroArtwork.imageUrl}
+                alt={heroArtwork.title}
+                style={{ width: "55%", display: "block" }}
+              />
+            </div>
+          )}
+
+          {/* Artwork description */}
+          {heroArtwork && (
+            <div style={{ marginTop: 12 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: 16,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {heroArtwork.title}
+                  </span>
+                  {heroArtwork.year && (
+                    <span
+                      style={{
+                        fontFamily: "system-ui",
+                        fontSize: 12,
+                        color: "#999",
+                        marginLeft: 8,
+                      }}
+                    >
+                      {heroArtwork.year}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {heroArtwork.medium && (
+                <div
+                  style={{
+                    fontFamily: "system-ui",
+                    fontSize: 12,
+                    color: "#888",
+                    marginTop: 2,
+                  }}
+                >
+                  {heroArtwork.medium}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Show title */}
           <div
@@ -125,18 +264,41 @@ export default function OpenState({
             {formatDateRange(exhibition.startDate, exhibition.endDate)}
           </div>
 
-          {/* Exhibition statement */}
+          {/* Exhibition statement toggle */}
           {exhibition.statement && (
             <div
+              onClick={() => setStatementExpanded(!statementExpanded)}
               style={{
-                fontFamily: "system-ui",
-                fontSize: 14,
-                lineHeight: 1.6,
-                color: "#555",
-                marginTop: 20,
+                marginTop: 16,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              {exhibition.statement}
+              <span
+                style={{
+                  fontFamily: "system-ui",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  color: "#999",
+                }}
+              >
+                Exhibition statement
+              </span>
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#999",
+                  display: "inline-block",
+                  transition: "transform 0.3s ease",
+                  transform: statementExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              >
+                ▼
+              </span>
             </div>
           )}
         </div>
@@ -190,6 +352,93 @@ export default function OpenState({
           Wed, Fri, Sat · 6pm–midnight
         </div>
       </div>
+
+      {/* Statement slide-up overlay */}
+      {exhibition?.statement && statementExpanded && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+          }}
+        >
+          <div
+            onClick={() => setStatementExpanded(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0,0,0,0.5)",
+              animation: "fadeIn 0.3s ease",
+            }}
+          />
+          <div
+            style={{
+              position: "relative",
+              background: "#1a1a1a",
+              color: "#f4f2ec",
+              borderRadius: "16px 16px 0 0",
+              padding: "16px 20px calc(env(safe-area-inset-bottom, 20px) + 20px)",
+              maxHeight: "60vh",
+              overflowY: "auto",
+              animation: "slideUp 0.3s ease",
+            }}
+          >
+            {/* Handle */}
+            <div
+              onClick={() => setStatementExpanded(false)}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: 14,
+                cursor: "pointer",
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 3,
+                  background: "rgba(244,242,236,0.2)",
+                  borderRadius: 2,
+                }}
+              />
+            </div>
+            <div
+              style={{
+                fontFamily: "system-ui",
+                fontSize: 10,
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                opacity: 0.4,
+                marginBottom: 10,
+              }}
+            >
+              Exhibition statement
+            </div>
+            <div
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 16,
+                lineHeight: 1.6,
+                fontStyle: "italic",
+              }}
+            >
+              {exhibition.statement}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-screen image popup */}
+      {showFullImage && heroArtwork && (
+        <ArtworkDetail
+          work={heroArtwork}
+          onClose={() => setShowFullImage(false)}
+        />
+      )}
 
       {/* Guest selector overlay */}
       {showGuests && (
