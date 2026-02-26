@@ -174,11 +174,42 @@ export default function OpenState({
             {exhibition.artistName}
           </h2>
 
+          {/* Show title — right under artist name */}
+          <div
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: 24,
+              fontStyle: "italic",
+              color: "#555",
+              marginTop: 4,
+              position: "relative",
+              zIndex: 2,
+            }}
+          >
+            {exhibition.title}
+          </div>
+
+          {/* Date range */}
+          <div
+            style={{
+              fontFamily: "system-ui",
+              fontSize: 12,
+              fontWeight: 700,
+              marginTop: 4,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              position: "relative",
+              zIndex: 2,
+            }}
+          >
+            {formatDateRange(exhibition.startDate, exhibition.endDate)}
+          </div>
+
           {/* Hero image — single, clickable */}
           {heroArtwork?.imageUrl && (
             <div
               onClick={() => setShowFullImage(true)}
-              style={{ display: "inline-block", marginTop: -20, position: "relative", zIndex: 1, cursor: "pointer" }}
+              style={{ marginTop: -8, position: "relative", zIndex: 1, cursor: "pointer", display: "inline-block" }}
             >
               <img
                 src={heroArtwork.imageUrl}
@@ -191,36 +222,28 @@ export default function OpenState({
           {/* Artwork description */}
           {heroArtwork && (
             <div style={{ marginTop: 12 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <div>
+              <div>
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: 16,
+                    fontWeight: 700,
+                  }}
+                >
+                  {heroArtwork.title}
+                </span>
+                {heroArtwork.year && (
                   <span
                     style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 16,
-                      fontWeight: 700,
+                      fontFamily: "system-ui",
+                      fontSize: 12,
+                      color: "#999",
+                      marginLeft: 8,
                     }}
                   >
-                    {heroArtwork.title}
+                    {heroArtwork.year}
                   </span>
-                  {heroArtwork.year && (
-                    <span
-                      style={{
-                        fontFamily: "system-ui",
-                        fontSize: 12,
-                        color: "#999",
-                        marginLeft: 8,
-                      }}
-                    >
-                      {heroArtwork.year}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
               {heroArtwork.medium && (
                 <div
@@ -236,33 +259,6 @@ export default function OpenState({
               )}
             </div>
           )}
-
-          {/* Show title */}
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 24,
-              fontStyle: "italic",
-              color: "#555",
-              marginTop: 16,
-            }}
-          >
-            {exhibition.title}
-          </div>
-
-          {/* Date range */}
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 14,
-              fontWeight: 700,
-              marginTop: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {formatDateRange(exhibition.startDate, exhibition.endDate)}
-          </div>
 
           {/* Exhibition statement toggle */}
           {exhibition.statement && (
