@@ -84,24 +84,52 @@ export async function getSchedule(now?: Date): Promise<ScheduleStatus> {
 }
 
 function findNextOpen(et: Date): Date {
-  const next = new Date(et);
+  // et is already in ET "wall clock" — we need to return a real UTC Date
+  // that represents 6 PM ET on the next open day.
 
-  if (OPEN_DAYS.has(next.getDay()) && next.getHours() < OPEN_HOUR) {
-    next.setHours(OPEN_HOUR, 0, 0, 0);
-    return next;
+  // If today is an open day and it's before 6 PM ET, open time is today
+  if (OPEN_DAYS.has(et.getDay()) && et.getHours() < OPEN_HOUR) {
+    return etToUTC(et.getFullYear(), et.getMonth(), et.getDate(), OPEN_HOUR);
   }
 
+  // Otherwise find the next open day
   for (let i = 1; i <= 7; i++) {
     const check = new Date(et);
     check.setDate(check.getDate() + i);
-    check.setHours(OPEN_HOUR, 0, 0, 0);
     if (OPEN_DAYS.has(check.getDay())) {
-      return check;
+      return etToUTC(check.getFullYear(), check.getMonth(), check.getDate(), OPEN_HOUR);
     }
   }
 
   const fallback = new Date(et);
   fallback.setDate(fallback.getDate() + 7);
-  fallback.setHours(OPEN_HOUR, 0, 0, 0);
-  return fallback;
+  return etToUTC(fallback.getFullYear(), fallback.getMonth(), fallback.getDate(), OPEN_HOUR);
+}
+
+/** Build a real UTC Date from ET wall-clock values */
+function etToUTC(year: number, month: number, day: number, hour: number): Date {
+  // Create a date string in ET, then let the timezone offset handle conversion
+  const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00`;
+  // Use Intl to figure out the UTC offset for this specific ET moment
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  // Trial: assume EST (-5), then correct if needed
+  const trial = new Date(Date.UTC(year, month, day, hour + 5, 0, 0));
+  const parts = formatter.formatToParts(trial);
+  const etHour = Number(parts.find((p) => p.type === "hour")?.value);
+
+  // If the trial gives us the right ET hour, we're done
+  if (etHour === hour) return trial;
+
+  // Otherwise it's EDT (-4), shift by 1 hour
+  return new Date(trial.getTime() + (hour - etHour) * 3600000);
 }
