@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Exhibition, SoundInfo, MemberData } from "../types";
 import Pulse from "./Pulse";
-import ArtworkCarousel from "./ArtworkCarousel";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
 
@@ -37,10 +36,12 @@ export default function OpenState({
   const formatDateRange = (start: string, end: string) => {
     const s = new Date(start);
     const e = new Date(end);
-    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone: "UTC" };
     const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: "numeric" };
     return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
   };
+
+  const heroArtwork = exhibition?.artworks?.[0];
 
   return (
     <div
@@ -80,6 +81,7 @@ export default function OpenState({
       {/* Exhibition hero */}
       {exhibition && (
         <div style={{ position: "relative", padding: "24px 20px 0" }}>
+          {/* Artist name */}
           <h2
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -95,48 +97,43 @@ export default function OpenState({
             {exhibition.artistName}
           </h2>
 
-          {/* Artwork carousel */}
-          <ArtworkCarousel artworks={exhibition.artworks} />
-
-          {/* Show title */}
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 24,
-              fontStyle: "italic",
-              color: "#555",
-              marginTop: 16,
-            }}
-          >
-            {exhibition.title}
-          </div>
-
-          {/* Date range */}
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 14,
-              fontWeight: 700,
-              marginTop: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {formatDateRange(exhibition.startDate, exhibition.endDate)}
-          </div>
-
-          {/* Exhibition statement */}
-          {exhibition.statement && (
+          {/* Show title + date — sits under name, overlaps top of image */}
+          <div style={{ position: "relative", zIndex: 2, marginTop: 6 }}>
+            <div
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 24,
+                fontStyle: "italic",
+                color: "#555",
+              }}
+            >
+              {exhibition.title}
+            </div>
             <div
               style={{
                 fontFamily: "system-ui",
-                fontSize: 14,
-                lineHeight: 1.6,
-                color: "#555",
-                marginTop: 20,
+                fontSize: 12,
+                fontWeight: 700,
+                marginTop: 4,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
               }}
             >
-              {exhibition.statement}
+              {formatDateRange(exhibition.startDate, exhibition.endDate)}
+            </div>
+          </div>
+
+          {/* Hero image — pulled up so title/date overlap top edge */}
+          {heroArtwork?.imageUrl && (
+            <div style={{ marginTop: -12, position: "relative", zIndex: 1 }}>
+              <img
+                src={heroArtwork.imageUrl}
+                alt={heroArtwork.title}
+                style={{
+                  width: "100%",
+                  display: "block",
+                }}
+              />
             </div>
           )}
         </div>
