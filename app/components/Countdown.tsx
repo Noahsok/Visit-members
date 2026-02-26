@@ -28,8 +28,14 @@ export default function Countdown({ targetDate }: CountdownProps) {
   parts.push(`${String(mins).padStart(2, "0")}m`);
   parts.push(`${String(secs).padStart(2, "0")}s`);
 
+  const targetObj = new Date(targetDate);
+  const dayName = targetObj.toLocaleDateString("en-US", {
+    weekday: "long",
+    timeZone: "America/New_York",
+  });
+
   return (
-    <div>
+    <div style={{ textAlign: "right" }}>
       <div
         style={{
           fontFamily: "system-ui",
@@ -39,7 +45,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
           opacity: 0.5,
         }}
       >
-        Opens in
+        Opens {dayName}
       </div>
       <div
         style={{
