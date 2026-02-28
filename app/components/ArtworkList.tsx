@@ -45,18 +45,6 @@ function ArtworkDetail({ work, onClose }: { work: Artwork; onClose: () => void }
         >
           {work.title}
         </div>
-        {work.medium && (
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 13,
-              opacity: 0.5,
-              marginTop: 6,
-            }}
-          >
-            {work.medium}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -144,7 +132,7 @@ export default function ArtworkList({ exhibition }: ArtworkListProps) {
               <div
                 style={{
                   fontFamily: "system-ui",
-                  fontSize: 9,
+                  fontSize: 12,
                   opacity: 0.35,
                   flexShrink: 0,
                   paddingTop: 4,
