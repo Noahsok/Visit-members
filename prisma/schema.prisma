@@ -37,6 +37,7 @@ model Venue {
   featuredPours    FeaturedPour[]
   insiderTips      InsiderTip[]
   sounds           Sound[]
+  spotifyToken     SpotifyToken?
 
   @@map("venues")
 }
@@ -465,6 +466,18 @@ model PushSubscription {
 
   @@unique([memberId, endpoint])
   @@map("push_subscriptions")
+}
+
+model SpotifyToken {
+  id           String   @id @default(uuid())
+  venueId      String   @unique @map("venue_id")
+  accessToken  String   @map("access_token")
+  refreshToken String   @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  venue        Venue    @relation(fields: [venueId], references: [id])
+
+  @@map("spotify_tokens")
 }
 
 // ─── Enums ──────────────────────────────────────────────────────

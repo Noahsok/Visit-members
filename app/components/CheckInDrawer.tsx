@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem } from "../types";
+import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem, NowPlaying } from "../types";
 import DrawerShell from "./DrawerShell";
 import MemberHeader from "./MemberHeader";
 import MemberPerks from "./MemberPerks";
@@ -15,6 +15,7 @@ interface CheckInDrawerProps {
   exhibition: Exhibition | null;
   pour: Pour | null;
   sound: SoundInfo | null;
+  nowPlaying?: NowPlaying | null;
   insiderTip: InsiderTip | null;
   menu: MenuItem[];
   onLeave: () => void;
@@ -33,6 +34,7 @@ export default function CheckInDrawer({
   exhibition,
   pour,
   sound,
+  nowPlaying,
   insiderTip,
   onLeave,
   onDismiss,
@@ -166,7 +168,7 @@ export default function CheckInDrawer({
                     borderTop: "1px solid rgba(244,242,236,0.1)",
                   }}
                 >
-                  <SoundBar djName={sound.djName} genre={sound.genre} dark />
+                  <SoundBar djName={sound.djName} genre={sound.genre} dark nowPlaying={nowPlaying} />
                 </div>
               )}
 

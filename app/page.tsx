@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem } from "./types";
+import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem, NowPlaying } from "./types";
 import ClosedState from "./components/ClosedState";
 import OpenState from "./components/OpenState";
 import CheckInDrawer from "./components/CheckInDrawer";
@@ -23,6 +23,7 @@ export default function Home() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [sound, setSound] = useState<SoundInfo | null>(null);
   const [insiderTip, setInsiderTip] = useState<InsiderTip | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null);
 
   const getToken = () => localStorage.getItem("visit_token");
 
@@ -40,6 +41,15 @@ export default function Home() {
     }
     return res.json();
   }, []);
+
+  const fetchNowPlaying = useCallback(async () => {
+    try {
+      const data = await authFetch("/api/pwa/now-playing");
+      setNowPlaying(data.nowPlaying);
+    } catch {
+      // Silently fail — Spotify may not be connected
+    }
+  }, [authFetch]);
 
   const loadContent = useCallback(async () => {
     try {
@@ -61,7 +71,9 @@ export default function Home() {
       // Use cached data if offline
       console.error("Content load error:", e);
     }
-  }, [authFetch]);
+    // Also fetch now playing
+    fetchNowPlaying();
+  }, [authFetch, fetchNowPlaying]);
 
   const determineState = useCallback(async () => {
     const token = getToken();
@@ -123,7 +135,7 @@ export default function Home() {
     determineState();
 
     // Poll status every 30 seconds (for open/close transitions)
-    const interval = setInterval(async () => {
+    const statusInterval = setInterval(async () => {
       try {
         const statusData = await authFetch("/api/pwa/status");
         if (statusData.isCheckedIn && state !== "at-visit") {
@@ -139,7 +151,13 @@ export default function Home() {
       }
     }, 30000);
 
-    return () => clearInterval(interval);
+    // Poll now-playing every 15 seconds for live track updates
+    const nowPlayingInterval = setInterval(fetchNowPlaying, 15000);
+
+    return () => {
+      clearInterval(statusInterval);
+      clearInterval(nowPlayingInterval);
+    };
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCheckIn = async (guests: number) => {
@@ -227,6 +245,7 @@ export default function Home() {
         <OpenState
           exhibition={exhibition}
           sound={sound}
+          nowPlaying={nowPlaying}
           member={member}
           onCheckIn={handleCheckIn}
           isCheckedIn={state === "at-visit"}
@@ -241,6 +260,7 @@ export default function Home() {
           exhibition={exhibition}
           pour={member.appAccess === "approved" ? pour : null}
           sound={sound}
+          nowPlaying={nowPlaying}
           insiderTip={insiderTip}
           menu={menu}
           onLeave={handleLeave}

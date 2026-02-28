@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Exhibition, SoundInfo, MemberData, Artwork } from "../types";
+import type { Exhibition, SoundInfo, MemberData, Artwork, NowPlaying } from "../types";
 import Pulse from "./Pulse";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
@@ -9,6 +9,7 @@ import GuestSelector from "./GuestSelector";
 interface OpenStateProps {
   exhibition: Exhibition | null;
   sound: SoundInfo | null;
+  nowPlaying?: NowPlaying | null;
   member: MemberData;
   onCheckIn: (guestCount: number) => void;
   isCheckedIn?: boolean;
@@ -94,6 +95,7 @@ function ArtworkDetail({
 export default function OpenState({
   exhibition,
   sound,
+  nowPlaying,
   member,
   onCheckIn,
   isCheckedIn = false,
@@ -301,7 +303,13 @@ export default function OpenState({
       )}
 
       {/* Sound bar */}
-      {sound && <SoundBar djName={sound.djName} genre={sound.genre} />}
+      {(sound || nowPlaying) && (
+        <SoundBar
+          djName={sound?.djName || ""}
+          genre={sound?.genre}
+          nowPlaying={nowPlaying}
+        />
+      )}
 
       {/* CTA + hours — sticky bottom */}
       <div
