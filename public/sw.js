@@ -1,4 +1,4 @@
-const CACHE_NAME = "visit-members-v25";
+const CACHE_NAME = "visit-members-v26";
 
 // App shell files to precache
 const PRECACHE_URLS = [

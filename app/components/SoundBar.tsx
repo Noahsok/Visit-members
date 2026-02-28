@@ -44,33 +44,48 @@ export default function SoundBar({ djName, genre, dark = false, nowPlaying }: So
         </div>
 
         {hasSpotify ? (
-          <div style={{ flex: 1, minWidth: 0, textAlign: "right" }}>
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: 16,
-                fontWeight: 700,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {nowPlaying.trackName}
+          <>
+            {nowPlaying.albumArt && (
+              <img
+                src={nowPlaying.albumArt}
+                alt=""
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 4,
+                  objectFit: "cover",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: 0, textAlign: "right" }}>
+              <div
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {nowPlaying.trackName}
+              </div>
+              <div
+                style={{
+                  fontFamily: "system-ui",
+                  fontSize: 13,
+                  color: "rgba(244,242,236,0.5)",
+                  marginTop: 2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {nowPlaying.artistName}
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: "system-ui",
-                fontSize: 13,
-                color: "rgba(244,242,236,0.5)",
-                marginTop: 2,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {nowPlaying.artistName}
-            </div>
-          </div>
+          </>
         ) : (
           <div style={{ flex: 1, minWidth: 0, textAlign: "right" }}>
             <div
