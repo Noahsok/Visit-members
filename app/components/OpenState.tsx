@@ -321,18 +321,7 @@ export default function OpenState({
           padding: "16px 20px 32px",
         }}
       >
-        {isCheckedIn ? (
-          <button
-            onClick={onReopenDrawer}
-            className="btn-primary"
-            style={{
-              background: "#1a1a1a",
-              color: "#f4f2ec",
-            }}
-          >
-            Checked in
-          </button>
-        ) : (
+        {!isCheckedIn && (
           <button
             onClick={handleCheckInClick}
             className="btn-primary"
