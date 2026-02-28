@@ -132,7 +132,7 @@ export default function ArtworkList({ exhibition }: ArtworkListProps) {
               <div
                 style={{
                   fontFamily: "system-ui",
-                  fontSize: 12,
+                  fontSize: 14,
                   opacity: 0.35,
                   flexShrink: 0,
                   paddingTop: 4,
