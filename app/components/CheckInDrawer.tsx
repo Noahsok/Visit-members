@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import type { MemberData, Exhibition, Pour, SoundInfo, InsiderTip, MenuItem, NowPlaying } from "../types";
 import DrawerShell from "./DrawerShell";
 import MemberHeader from "./MemberHeader";
@@ -22,12 +21,6 @@ interface CheckInDrawerProps {
   onDismiss: () => void;
 }
 
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
 export default function CheckInDrawer({
   member,
   guestCount,
@@ -39,50 +32,10 @@ export default function CheckInDrawer({
   onLeave,
   onDismiss,
 }: CheckInDrawerProps) {
-  const [showIntro, setShowIntro] = useState(true);
-  const [introFading, setIntroFading] = useState(false);
-
-  useEffect(() => {
-    if (!showIntro) return;
-    const fadeTimer = setTimeout(() => setIntroFading(true), 1500);
-    const hideTimer = setTimeout(() => setShowIntro(false), 1900);
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [showIntro]);
-
   return (
     <DrawerShell onClose={onDismiss}>
       {(animateClose) => (
         <>
-          {showIntro ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "80px 20px",
-                opacity: introFading ? 0 : 1,
-                transition: "opacity 0.4s ease",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: 48,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  textAlign: "center",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Your {ordinal(member.visitCount)} visit
-              </div>
-            </div>
-          ) : (
-            <>
               {/* Checked in label */}
               <div
                 style={{
@@ -207,8 +160,6 @@ export default function CheckInDrawer({
                   Wed, Fri, Sat · 6pm–midnight
                 </span>
               </div>
-            </>
-          )}
         </>
       )}
     </DrawerShell>

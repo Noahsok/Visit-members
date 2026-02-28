@@ -268,14 +268,44 @@ export default function Home() {
         />
       )}
 
-      {/* Member initial button — visible when logged in but not when check-in drawer is open */}
-      {member && state !== "loading" && state !== "at-visit" && (
+      {/* Member initial button — always visible when logged in */}
+      {member && state !== "loading" && !showCheckInDrawer && (
         <button
           className="member-initial member-initial-light"
-          onClick={() => setShowMemberDrawer(true)}
+          onClick={() => {
+            if (state === "at-visit") {
+              setShowCheckInDrawer(true);
+            } else {
+              setShowMemberDrawer(true);
+            }
+          }}
         >
           {initial}
         </button>
+      )}
+
+      {/* Checked in tag — bottom right when at visit */}
+      {state === "at-visit" && !showCheckInDrawer && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 28,
+            right: 20,
+            fontFamily: "system-ui",
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            color: "#f4f2ec",
+            background: "#1a1a1a",
+            padding: "6px 14px",
+            borderRadius: 20,
+            opacity: 0.5,
+            zIndex: 50,
+          }}
+        >
+          Checked in
+        </div>
       )}
 
       {/* Member drawer overlay */}
