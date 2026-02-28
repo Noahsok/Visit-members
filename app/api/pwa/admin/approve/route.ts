@@ -4,22 +4,23 @@ import prisma from "@/lib/prisma";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "visit2026";
 
 export async function GET(request: NextRequest) {
-  const password = request.nextUrl.searchParams.get("password");
-  const phone = request.nextUrl.searchParams.get("phone");
+  try {
+    const password = request.nextUrl.searchParams.get("password");
+    const phone = request.nextUrl.searchParams.get("phone");
 
-  if (password !== ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
-  }
+    if (password !== ADMIN_PASSWORD) {
+      return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+    }
 
-  if (!phone) {
-    // List all pending members
-    const pending = await prisma.member.findMany({
-      where: { appAccess: "none" },
-      select: { id: true, name: true, phone: true, tier: true, joinedAt: true },
-      orderBy: { joinedAt: "desc" },
-    });
+    if (!phone) {
+      // List all pending members
+      const pending = await prisma.member.findMany({
+        where: { appAccess: "none" },
+        select: { id: true, name: true, phone: true, tier: true, joinedAt: true },
+        orderBy: { joinedAt: "desc" },
+      });
 
-    const html = `<!DOCTYPE html>
+      const html = `<!DOCTYPE html>
 <html><head><title>Pending Members</title>
 <style>body{font-family:system-ui;background:#1a1a1a;color:#f4f2ec;padding:20px;max-width:500px;margin:0 auto}
 h1{font-size:18px;opacity:0.5;text-transform:uppercase;letter-spacing:0.1em}
@@ -36,39 +37,49 @@ ${pending.length === 0 ? '<p class="empty">No pending members</p>' : pending.map
 }).join("")}
 </body></html>`;
 
-    return new NextResponse(html, { headers: { "Content-Type": "text/html" } });
-  }
+      return new NextResponse(html, { headers: { "Content-Type": "text/html" } });
+    }
 
-  // Approve a specific member by phone
-  const digits = phone.replace(/\D/g, "");
+    // Approve a specific member by phone
+    const digits = phone.replace(/\D/g, "");
 
-  const member = await prisma.member.findFirst({
-    where: {
-      phone: { contains: digits },
-    },
-  });
+    const member = await prisma.member.findFirst({
+      where: {
+        phone: { contains: digits },
+      },
+    });
 
-  if (!member) {
-    return new NextResponse(
-      `<!DOCTYPE html><html><head><title>Not Found</title>
+    if (!member) {
+      return new NextResponse(
+        `<!DOCTYPE html><html><head><title>Not Found</title>
 <style>body{font-family:system-ui;background:#1a1a1a;color:#f4f2ec;padding:40px;text-align:center}
 h1{font-size:20px}p{opacity:0.5}</style></head>
 <body><h1>Member not found</h1><p>No member with phone ${digits}</p></body></html>`,
-      { headers: { "Content-Type": "text/html" } }
-    );
-  }
+        { headers: { "Content-Type": "text/html" } }
+      );
+    }
 
-  await prisma.member.update({
-    where: { id: member.id },
-    data: { appAccess: "approved" },
-  });
+    await prisma.member.update({
+      where: { id: member.id },
+      data: { appAccess: "approved" },
+    });
 
-  return new NextResponse(
-    `<!DOCTYPE html><html><head><title>Approved</title>
+    return new NextResponse(
+      `<!DOCTYPE html><html><head><title>Approved</title>
 <style>body{font-family:system-ui;background:#1a1a1a;color:#f4f2ec;padding:40px;text-align:center}
 h1{font-size:20px}p{opacity:0.5}</style></head>
 <body><h1>✓ ${member.name} approved</h1><p>${member.phone} · ${member.tier}</p>
 <p><a href="/api/pwa/admin/approve?password=${password}" style="color:#f4f2ec">← Back to list</a></p></body></html>`,
-    { headers: { "Content-Type": "text/html" } }
-  );
+      { headers: { "Content-Type": "text/html" } }
+    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new NextResponse(
+      `<!DOCTYPE html><html><head><title>Error</title>
+<style>body{font-family:system-ui;background:#1a1a1a;color:#f4f2ec;padding:40px}
+h1{font-size:20px}pre{opacity:0.5;white-space:pre-wrap;font-size:13px}</style></head>
+<body><h1>Error</h1><pre>${message}</pre></body></html>`,
+      { status: 500, headers: { "Content-Type": "text/html" } }
+    );
+  }
 }
