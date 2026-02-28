@@ -79,23 +79,60 @@ export default function CheckInDrawer({
                       opacity: 0.3,
                       textTransform: "uppercase",
                       letterSpacing: "0.15em",
-                      marginBottom: 8,
+                      marginBottom: 6,
                     }}
                   >
-                    Insider tip
+                    Off-menu
                   </div>
                   <div
                     style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 18,
-                      fontStyle: "italic",
-                      fontWeight: 400,
-                      lineHeight: 1.4,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 12,
                     }}
                   >
-                    {insiderTip.title}
-                    {insiderTip.description && (
-                      <span style={{ opacity: 0.6 }}> — {insiderTip.description}</span>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "'Playfair Display', Georgia, serif",
+                          fontSize: 22,
+                          fontWeight: 900,
+                          lineHeight: 1.05,
+                        }}
+                      >
+                        {insiderTip.title}
+                      </div>
+                      {insiderTip.description && (() => {
+                        const parts = insiderTip.description.split(" · ");
+                        const desc = parts[0];
+                        return (
+                          <div
+                            style={{
+                              fontFamily: "system-ui",
+                              fontSize: 13,
+                              opacity: 0.5,
+                              marginTop: 4,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {desc}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    {insiderTip.description?.includes("$") && (
+                      <div
+                        style={{
+                          fontFamily: "system-ui",
+                          fontSize: 9,
+                          opacity: 0.35,
+                          flexShrink: 0,
+                          paddingTop: 6,
+                        }}
+                      >
+                        {insiderTip.description.split(" · ").pop()}
+                      </div>
                     )}
                   </div>
                 </div>

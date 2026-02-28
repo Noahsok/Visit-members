@@ -6,6 +6,7 @@ interface FeaturedPourProps {
   tastingNote?: string | null;
   imageUrl?: string | null;
   dark?: boolean;
+  label?: string;
 }
 
 export default function FeaturedPour({
@@ -14,6 +15,7 @@ export default function FeaturedPour({
   tastingNote,
   imageUrl,
   dark = false,
+  label = "Featured",
 }: FeaturedPourProps) {
   const bg = dark ? "rgba(244,242,236,0.05)" : "#1a1a1a";
   const fg = "#f4f2ec";
@@ -33,51 +35,53 @@ export default function FeaturedPour({
             />
           </div>
         )}
-        <div>
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 10,
-              fontWeight: 600,
-              opacity: 0.3,
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              marginBottom: 6,
-            }}
-          >
-            Featured pour
-          </div>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 22,
-              fontWeight: 900,
-              lineHeight: 1.05,
-            }}
-          >
-            {drinkName}
-          </div>
-          {spec && (
+        <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <div>
             <div
               style={{
                 fontFamily: "system-ui",
-                fontSize: 13,
-                opacity: 0.5,
-                marginTop: 4,
-                lineHeight: 1.4,
+                fontSize: 10,
+                fontWeight: 600,
+                opacity: 0.3,
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                marginBottom: 6,
               }}
             >
-              {spec}
+              {label}
             </div>
-          )}
-          {tastingNote && (
             <div
               style={{
                 fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: 14,
-                fontStyle: "italic",
+                fontSize: 22,
+                fontWeight: 900,
+                lineHeight: 1.05,
+              }}
+            >
+              {drinkName}
+            </div>
+            {spec && (
+              <div
+                style={{
+                  fontFamily: "system-ui",
+                  fontSize: 13,
+                  opacity: 0.5,
+                  marginTop: 4,
+                  lineHeight: 1.4,
+                }}
+              >
+                {spec}
+              </div>
+            )}
+          </div>
+          {tastingNote && (
+            <div
+              style={{
+                fontFamily: "system-ui",
+                fontSize: 9,
                 opacity: 0.35,
-                marginTop: 6,
+                flexShrink: 0,
+                paddingTop: 18,
               }}
             >
               {tastingNote}
@@ -119,7 +123,7 @@ export default function FeaturedPour({
               marginBottom: 12,
             }}
           >
-            Featured pour
+            {label}
           </div>
           <div
             style={{
@@ -144,21 +148,21 @@ export default function FeaturedPour({
               {spec}
             </div>
           )}
-          {tastingNote && (
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: 15,
-                fontStyle: "italic",
-                color: "rgba(244,242,236,0.4)",
-                marginTop: 8,
-                lineHeight: 1.4,
-              }}
-            >
-              {tastingNote}
-            </div>
-          )}
         </div>
+        {tastingNote && (
+          <div
+            style={{
+              position: "absolute",
+              top: 24,
+              right: imageUrl ? "calc(45% + 20px)" : 20,
+              fontFamily: "system-ui",
+              fontSize: 9,
+              color: "rgba(244,242,236,0.35)",
+            }}
+          >
+            {tastingNote}
+          </div>
+        )}
         {imageUrl && (
           <div style={{ width: "45%", flexShrink: 0 }}>
             <img
