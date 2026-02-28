@@ -4,14 +4,21 @@ const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "";
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 
-const SCOPES = "user-read-currently-playing user-read-playback-state";
+const SCOPES = "user-read-currently-playing user-read-playback-state user-read-recently-played";
 const REDIRECT_URI = `${APP_URL}/api/pwa/admin/spotify/callback`;
+
+export interface TrackData {
+  trackName: string;
+  artistName: string;
+  albumArt: string | null;
+}
 
 export interface NowPlayingData {
   trackName: string;
   artistName: string;
   albumArt: string | null;
   isPlaying: boolean;
+  previousTrack: TrackData | null;
 }
 
 /**
@@ -135,24 +142,46 @@ export async function getNowPlaying(
     }
   }
 
-  const res = await fetch(
-    "https://api.spotify.com/v1/me/player/currently-playing",
-    {
+  // Fetch current track and recently played in parallel
+  const [currentRes, recentRes] = await Promise.all([
+    fetch("https://api.spotify.com/v1/me/player/currently-playing", {
       headers: { Authorization: `Bearer ${accessToken}` },
-    }
-  );
+    }),
+    fetch("https://api.spotify.com/v1/me/player/recently-played?limit=1", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => null),
+  ]);
 
   // 204 = nothing playing
-  if (res.status === 204 || !res.ok) return null;
+  if (currentRes.status === 204 || !currentRes.ok) return null;
 
-  const data = await res.json();
+  const data = await currentRes.json();
 
   if (!data.item || data.currently_playing_type !== "track") return null;
+
+  // Get previous track from recently played
+  let previousTrack: TrackData | null = null;
+  if (recentRes && recentRes.ok) {
+    try {
+      const recentData = await recentRes.json();
+      const lastPlayed = recentData.items?.[0]?.track;
+      if (lastPlayed && lastPlayed.name !== data.item.name) {
+        previousTrack = {
+          trackName: lastPlayed.name,
+          artistName: lastPlayed.artists.map((a: { name: string }) => a.name).join(", "),
+          albumArt: lastPlayed.album?.images?.[0]?.url || null,
+        };
+      }
+    } catch {
+      // Ignore — recently played is optional
+    }
+  }
 
   return {
     trackName: data.item.name,
     artistName: data.item.artists.map((a: { name: string }) => a.name).join(", "),
     albumArt: data.item.album?.images?.[0]?.url || null,
     isPlaying: data.is_playing,
+    previousTrack,
   };
 }

@@ -54,10 +54,17 @@ export interface MenuItem {
   price: number | null;
 }
 
+export interface TrackInfo {
+  trackName: string;
+  artistName: string;
+  albumArt: string | null;
+}
+
 export interface NowPlaying {
   trackName: string;
   artistName: string;
   albumArt: string | null;
   isPlaying: boolean;
+  previousTrack: TrackInfo | null;
 }
 
