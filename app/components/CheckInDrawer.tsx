@@ -191,7 +191,7 @@ export default function CheckInDrawer({
                   style={{
                     fontFamily: "system-ui",
                     fontSize: 12,
-                    opacity: 0.25,
+                    opacity: 0.35,
                   }}
                 >
                   Wed, Fri, Sat · 6pm–midnight

@@ -45,7 +45,7 @@ function ArtworkDetail({
           alt={work.title}
           style={{
             maxWidth: "92%",
-            maxHeight: "70vh",
+            maxHeight: "60vh",
             objectFit: "contain",
             display: "block",
           }}
@@ -62,31 +62,22 @@ function ArtworkDetail({
         <div
           style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: 22,
-            fontStyle: "italic",
-            fontWeight: 400,
+            fontSize: 20,
+            fontWeight: 700,
           }}
         >
-          {work.title}
-          {work.year && (
-            <span style={{ opacity: 0.4, fontStyle: "normal", fontSize: 16 }}>
-              {" "}({work.year})
-            </span>
-          )}
+          {work.title}{work.year ? `, ${work.year}` : ""}
         </div>
-        {work.medium && (
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 13,
-              opacity: 0.45,
-              marginTop: 8,
-              lineHeight: 1.5,
-            }}
-          >
-            {work.medium}
-          </div>
-        )}
+        <div
+          style={{
+            fontFamily: "system-ui",
+            fontSize: 14,
+            opacity: 0.5,
+            marginTop: 6,
+          }}
+        >
+          $1,200
+        </div>
       </div>
     </div>
   );
@@ -224,28 +215,15 @@ export default function OpenState({
           {/* Artwork description */}
           {heroArtwork && (
             <div style={{ marginTop: 12 }}>
-              <div>
-                <span
-                  style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: 16,
-                    fontWeight: 700,
-                  }}
-                >
-                  {heroArtwork.title}
-                </span>
-                {heroArtwork.year && (
-                  <span
-                    style={{
-                      fontFamily: "system-ui",
-                      fontSize: 12,
-                      color: "#999",
-                      marginLeft: 8,
-                    }}
-                  >
-                    {heroArtwork.year}
-                  </span>
-                )}
+              <div
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#333",
+                }}
+              >
+                {heroArtwork.title}{heroArtwork.year ? `, ${heroArtwork.year}` : ""}
               </div>
               {heroArtwork.medium && (
                 <div
@@ -281,7 +259,7 @@ export default function OpenState({
                   fontWeight: 600,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  color: "#999",
+                  color: "#666",
                 }}
               >
                 Exhibition statement
@@ -289,7 +267,7 @@ export default function OpenState({
               <span
                 style={{
                   fontSize: 8,
-                  color: "#999",
+                  color: "#666",
                   display: "inline-block",
                   transition: "transform 0.3s ease",
                   transform: statementExpanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -337,7 +315,7 @@ export default function OpenState({
           style={{
             fontFamily: "system-ui",
             fontSize: 12,
-            color: "#999",
+            color: "#777",
             textAlign: "right",
             marginTop: 8,
           }}
