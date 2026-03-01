@@ -234,19 +234,8 @@ export default function ClosedState({
                     color: "#333",
                   }}
                 >
-                  {heroArtwork.title}
+                  {heroArtwork.title}{heroArtwork.year ? `, ${heroArtwork.year}` : ""}
                 </span>
-                {heroArtwork.year && (
-                  <span
-                    style={{
-                      fontFamily: "system-ui",
-                      fontSize: 11,
-                      color: "#777",
-                    }}
-                  >
-                    {heroArtwork.year}
-                  </span>
-                )}
               </div>
             </div>
           )}
