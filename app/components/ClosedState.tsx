@@ -120,7 +120,7 @@ export default function ClosedState({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.12em",
-                    color: "#999",
+                    color: "#666",
                   }}
                 >
                   Exhibition statement
@@ -128,7 +128,7 @@ export default function ClosedState({
                 <span
                   style={{
                     fontSize: 8,
-                    color: "#999",
+                    color: "#666",
                     display: "inline-block",
                     transition: "transform 0.3s ease",
                     transform: statementExpanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -230,8 +230,8 @@ export default function ClosedState({
                   style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 14,
-                    fontStyle: "italic",
-                    color: "#555",
+                    fontWeight: 700,
+                    color: "#333",
                   }}
                 >
                   {heroArtwork.title}
@@ -241,7 +241,7 @@ export default function ClosedState({
                     style={{
                       fontFamily: "system-ui",
                       fontSize: 11,
-                      color: "#bbb",
+                      color: "#777",
                     }}
                   >
                     {heroArtwork.year}
@@ -265,7 +265,7 @@ export default function ClosedState({
           style={{
             fontFamily: "system-ui",
             fontSize: 12,
-            color: "#bbb",
+            color: "#777",
           }}
         >
           Wed, Fri, Sat · 6pm–midnight · Newburgh, NY
