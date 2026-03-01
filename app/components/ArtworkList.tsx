@@ -16,7 +16,7 @@ function ArtworkDetail({ work, onClose }: { work: Artwork; onClose: () => void }
         position: "fixed",
         inset: 0,
         background: "rgba(0,0,0,0.92)",
-        zIndex: 200,
+        zIndex: 9999,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -30,7 +30,7 @@ function ArtworkDetail({ work, onClose }: { work: Artwork; onClose: () => void }
           alt={work.title}
           style={{
             maxWidth: "100%",
-            maxHeight: "70vh",
+            maxHeight: "60vh",
             objectFit: "contain",
           }}
         />
@@ -43,7 +43,17 @@ function ArtworkDetail({ work, onClose }: { work: Artwork; onClose: () => void }
             fontWeight: 700,
           }}
         >
-          {work.title}
+          {work.title}{work.year ? `, ${work.year}` : ""}
+        </div>
+        <div
+          style={{
+            fontFamily: "system-ui",
+            fontSize: 14,
+            opacity: 0.5,
+            marginTop: 6,
+          }}
+        >
+          $1,200
         </div>
       </div>
     </div>
@@ -124,10 +134,10 @@ export default function ArtworkList({ exhibition }: ArtworkListProps) {
                 style={{
                   fontFamily: "'Playfair Display', Georgia, serif",
                   fontSize: 15,
-                  fontStyle: "italic",
+                  fontWeight: 700,
                 }}
               >
-                {work.title}
+                {work.title}{work.year ? `, ${work.year}` : ""}
               </div>
               <div
                 style={{

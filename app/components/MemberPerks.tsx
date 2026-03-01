@@ -9,7 +9,7 @@ function PerkRow({ label, detail }: { label: string; detail: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontFamily: "system-ui", fontSize: 14, fontWeight: 500 }}>{label}</span>
-      <span style={{ fontFamily: "system-ui", fontSize: 13, opacity: 0.25 }}>{detail}</span>
+      <span style={{ fontFamily: "system-ui", fontSize: 13, opacity: 0.5 }}>{detail}</span>
     </div>
   );
 }
@@ -24,7 +24,7 @@ export default function MemberPerks({ tier, label = "Member perks" }: MemberPerk
           fontFamily: "system-ui",
           fontSize: 11,
           fontWeight: 600,
-          opacity: 0.5,
+          opacity: 0.6,
           textTransform: "uppercase",
           letterSpacing: "0.15em",
           marginBottom: 12,
