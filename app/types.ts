@@ -11,6 +11,9 @@ export interface MemberData {
   expirationDate: string | null;
   appAccess: "none" | "preview" | "approved";
   visitCount: number;
+  inviteAllowance: number;
+  invitedBy?: string | null;
+  inviterName?: string | null;
 }
 
 export interface Artwork {

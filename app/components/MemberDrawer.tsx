@@ -5,6 +5,7 @@ import DrawerShell from "./DrawerShell";
 import MemberHeader from "./MemberHeader";
 import MemberPerks from "./MemberPerks";
 import ArtworkList from "./ArtworkList";
+import InviteSection from "./InviteSection";
 
 interface MemberDrawerProps {
   member: MemberData;
@@ -28,7 +29,11 @@ export default function MemberDrawer({
             <MemberHeader member={member} />
           </div>
 
-          <MemberPerks tier={member.tier} />
+          {!member.invitedBy && <MemberPerks tier={member.tier} />}
+
+          {member.inviteAllowance > 0 && !member.invitedBy && (
+            <InviteSection member={member} />
+          )}
 
           <div style={{ height: 1, background: "rgba(244,242,236,0.1)", margin: "24px 20px 0" }} />
 

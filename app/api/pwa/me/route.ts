@@ -34,6 +34,18 @@ export async function GET(request: NextRequest) {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
+    // Resolve inviter name if this is a guest
+    let inviterName: string | null = null;
+    if (member.invitedBy) {
+      const inviter = await prisma.member.findUnique({
+        where: { id: member.invitedBy },
+        select: { name: true },
+      });
+      if (inviter) {
+        inviterName = inviter.name.split(" ")[0] || inviter.name;
+      }
+    }
+
     return NextResponse.json({
       member: {
         id: member.id,
@@ -46,6 +58,9 @@ export async function GET(request: NextRequest) {
         expirationDate: member.expirationDate,
         appAccess: member.appAccess,
         visitCount,
+        inviteAllowance: member.inviteAllowance,
+        invitedBy: member.invitedBy,
+        inviterName,
       },
     });
   } catch (error) {

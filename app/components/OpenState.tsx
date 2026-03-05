@@ -5,6 +5,7 @@ import type { Exhibition, SoundInfo, MemberData, Artwork, NowPlaying } from "../
 import Pulse from "./Pulse";
 import SoundBar from "./SoundBar";
 import GuestSelector from "./GuestSelector";
+import SignupDrawer from "./SignupDrawer";
 
 interface OpenStateProps {
   exhibition: Exhibition | null;
@@ -95,6 +96,9 @@ export default function OpenState({
   const [showGuests, setShowGuests] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
   const [statementExpanded, setStatementExpanded] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  const isGuest = !!member.invitedBy;
 
   const handleCheckInClick = () => {
     if (member.tier === "enthusiast" && member.guestAllowance > 0) {
@@ -299,7 +303,7 @@ export default function OpenState({
           padding: "16px 20px 76px",
         }}
       >
-        {!isCheckedIn && (
+        {!isCheckedIn && !isGuest && (
           <button
             onClick={handleCheckInClick}
             className="btn-primary"
@@ -309,6 +313,18 @@ export default function OpenState({
             }}
           >
             I&apos;m here
+          </button>
+        )}
+        {isGuest && (
+          <button
+            onClick={() => setShowSignup(true)}
+            className="btn-primary"
+            style={{
+              background: "#1a1a1a",
+              color: "#f4f2ec",
+            }}
+          >
+            Become a member
           </button>
         )}
         <div
@@ -420,6 +436,18 @@ export default function OpenState({
             onCheckIn(count);
           }}
           onCancel={() => setShowGuests(false)}
+        />
+      )}
+
+      {/* Signup drawer for guests */}
+      {showSignup && (
+        <SignupDrawer
+          member={member}
+          onClose={() => setShowSignup(false)}
+          onSuccess={() => {
+            setShowSignup(false);
+            window.location.reload();
+          }}
         />
       )}
     </div>

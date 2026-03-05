@@ -6,7 +6,7 @@ const secret = new TextEncoder().encode(
 
 export interface TokenPayload {
   memberId: string;
-  squareCustomerId: string;
+  squareCustomerId: string | null;
   tier: "classic" | "enthusiast";
   name: string;
   venueId: string;

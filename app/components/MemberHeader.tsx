@@ -48,10 +48,16 @@ export default function MemberHeader({
           gap: 16,
         }}
       >
-        <span style={{ textTransform: "capitalize" }}>{member.tier}</span>
-        <span>Since {formatDate(member.joinedAt)}</span>
-        {member.expirationDate && (
-          <span>Exp {formatDate(member.expirationDate)}</span>
+        {member.invitedBy ? (
+          <span>Guest of {member.inviterName || "a member"}</span>
+        ) : (
+          <>
+            <span style={{ textTransform: "capitalize" }}>{member.tier}</span>
+            <span>Since {formatDate(member.joinedAt)}</span>
+            {member.expirationDate && (
+              <span>Exp {formatDate(member.expirationDate)}</span>
+            )}
+          </>
         )}
       </div>
 
