@@ -14,6 +14,7 @@ export interface MemberData {
   inviteAllowance: number;
   invitedBy?: string | null;
   inviterName?: string | null;
+  isAdmin: boolean;
 }
 
 export interface Artwork {

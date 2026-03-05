@@ -49,20 +49,42 @@ export default function MemberDrawer({
               alignItems: "center",
             }}
           >
-            <button
-              onClick={() => animateClose(onLogout)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "rgba(244,242,236,0.35)",
-                fontFamily: "system-ui",
-                fontSize: 13,
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              Log out
-            </button>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <button
+                onClick={() => animateClose(onLogout)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(244,242,236,0.35)",
+                  fontFamily: "system-ui",
+                  fontSize: 13,
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                Log out
+              </button>
+              {member.isAdmin && (
+                <button
+                  onClick={() => {
+                    animateClose(() => {
+                      window.location.href = "/admin/invites";
+                    });
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "rgba(244,242,236,0.35)",
+                    fontFamily: "system-ui",
+                    fontSize: 13,
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  Admin
+                </button>
+              )}
+            </div>
             <button
               onClick={() => animateClose()}
               style={{

@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
         inviteAllowance: member.inviteAllowance,
         invitedBy: member.invitedBy,
         inviterName,
+        isAdmin: member.isAdmin,
       },
     });
   } catch (error) {

@@ -200,6 +200,7 @@ model Member {
   appAccess          AppAccess          @default(none) @map("app_access")
   inviteAllowance    Int                @default(0) @map("invite_allowance")
   invitedBy          String?            @map("invited_by")
+  isAdmin            Boolean            @default(false) @map("is_admin")
   checkIns           CheckIn[]
   renewalRequests    RenewalRequest[]
   // PWA relations
@@ -509,6 +510,7 @@ enum InviteStatus {
   pending
   used
   expired
+  revoked
 }
 
 enum IngredientCategory {

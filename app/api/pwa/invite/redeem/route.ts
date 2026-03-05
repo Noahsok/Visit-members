@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
         throw new Error("USED");
       }
 
+      if (invite.status === "revoked") {
+        throw new Error("REVOKED");
+      }
+
       if (invite.expiresAt && invite.expiresAt < new Date()) {
         await tx.inviteToken.update({
           where: { token },
@@ -116,6 +120,12 @@ export async function POST(request: NextRequest) {
     if (error.message === "EXPIRED") {
       return NextResponse.json(
         { error: "This invite has expired" },
+        { status: 410 }
+      );
+    }
+    if (error.message === "REVOKED") {
+      return NextResponse.json(
+        { error: "This invite has been revoked" },
         { status: 410 }
       );
     }

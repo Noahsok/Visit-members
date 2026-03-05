@@ -27,6 +27,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (invite.status === "revoked") {
+    return NextResponse.json(
+      { error: "This invite has been revoked" },
+      { status: 410 }
+    );
+  }
+
   if (invite.expiresAt && invite.expiresAt < new Date()) {
     // Mark as expired
     await prisma.inviteToken.update({

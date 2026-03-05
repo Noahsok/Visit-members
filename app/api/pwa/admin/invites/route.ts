@@ -1,48 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyToken, extractToken } from "@/lib/pwa-auth";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "visit2026";
+import { randomUUID } from "crypto";
 
 export const dynamic = "force-dynamic";
 
+async function checkAdmin(request: NextRequest) {
+  const token = extractToken(request.headers.get("authorization"));
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+  const member = await prisma.member.findUnique({
+    where: { id: payload.memberId },
+    select: { isAdmin: true },
+  });
+  if (!member?.isAdmin) return null;
+  return payload;
+}
+
 export async function GET(request: NextRequest) {
-  const password = request.nextUrl.searchParams.get("password");
-  if (password !== ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  const payload = await checkAdmin(request);
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const memberId = request.nextUrl.searchParams.get("memberId");
-  const grant = request.nextUrl.searchParams.get("grant");
-
-  // Grant invite allowance
-  if (memberId && grant) {
-    const count = parseInt(grant, 10);
-    if (isNaN(count) || count < 0) {
-      return NextResponse.json({ error: "Invalid grant amount" }, { status: 400 });
-    }
-
-    const member = await prisma.member.update({
-      where: { id: memberId },
-      data: { inviteAllowance: count },
-      select: { id: true, name: true, inviteAllowance: true },
-    });
-
-    return NextResponse.json({
-      success: true,
-      member: {
-        id: member.id,
-        name: member.name,
-        inviteAllowance: member.inviteAllowance,
-      },
-    });
-  }
-
-  // Show invite tree
   const members = await prisma.member.findMany({
     where: {
       OR: [
         { inviteAllowance: { gt: 0 } },
         { invitedBy: { not: null } },
+        { generatedInvites: { some: {} } },
       ],
     },
     select: {
@@ -53,15 +40,18 @@ export async function GET(request: NextRequest) {
       inviteAllowance: true,
       invitedBy: true,
       appAccess: true,
+      createdAt: true,
       generatedInvites: {
         select: {
+          id: true,
           token: true,
           status: true,
           createdAt: true,
           usedAt: true,
           usedBy: true,
+          expiresAt: true,
           invitee: {
-            select: { name: true },
+            select: { id: true, name: true },
           },
         },
         orderBy: { createdAt: "desc" },
@@ -70,54 +60,137 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   });
 
-  // Build HTML
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Visit Invites</title>
-<style>
-  body { font-family: system-ui; background: #1a1a1a; color: #f4f2ec; padding: 20px; max-width: 600px; margin: 0 auto; }
-  h1 { font-size: 24px; margin-bottom: 24px; }
-  .member { background: rgba(244,242,236,0.05); padding: 16px; margin-bottom: 12px; border-radius: 8px; }
-  .member-name { font-size: 18px; font-weight: 700; }
-  .meta { font-size: 12px; opacity: 0.5; margin-top: 4px; }
-  .invite { padding: 6px 0; font-size: 13px; border-top: 1px solid rgba(244,242,236,0.06); margin-top: 6px; }
-  .pending { color: #f39c12; }
-  .used { color: #27ae60; }
-  .expired { color: #e74c3c; }
-  .guest { background: rgba(244,242,236,0.03); padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid rgba(244,242,236,0.1); }
-</style></head><body>
-<h1>Invite Management</h1>
-${members
-  .filter((m) => m.inviteAllowance > 0)
-  .map((m) => {
-    const used = m.generatedInvites.filter((i) => i.status === "used").length;
-    return `<div class="member">
-      <div class="member-name">${m.name}</div>
-      <div class="meta">${m.tier} · ${m.inviteAllowance} allowance · ${m.generatedInvites.length} generated · ${used} used</div>
-      ${m.generatedInvites
-        .map(
-          (i) =>
-            `<div class="invite"><span class="${i.status}">${i.status}</span> — ${i.invitee?.name || i.usedBy || "pending"} · ${new Date(i.createdAt).toLocaleDateString()}</div>`
-        )
-        .join("")}
-    </div>`;
-  })
-  .join("")}
+  const inviters = members
+    .filter((m) => m.inviteAllowance > 0 || m.generatedInvites.length > 0)
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      tier: m.tier,
+      inviteAllowance: m.inviteAllowance,
+      invites: m.generatedInvites.map((i) => ({
+        id: i.id,
+        token: i.token,
+        status: i.status,
+        inviteeName: i.invitee?.name || null,
+        createdAt: i.createdAt,
+        expiresAt: i.expiresAt,
+      })),
+    }));
 
-<h2 style="margin-top:32px;font-size:18px;">Guests (invited members)</h2>
-${members
-  .filter((m) => m.invitedBy)
-  .map((m) => {
-    const inviter = members.find((x) => x.id === m.invitedBy);
-    return `<div class="guest">
-      <div class="member-name">${m.name}</div>
-      <div class="meta">Guest of ${inviter?.name || m.invitedBy} · ${m.phone || "no phone"}</div>
-    </div>`;
-  })
-  .join("") || '<div class="meta">None yet</div>'}
+  const guests = members
+    .filter((m) => m.invitedBy)
+    .map((m) => {
+      const inviter = members.find((x) => x.id === m.invitedBy);
+      return {
+        id: m.id,
+        name: m.name,
+        phone: m.phone,
+        inviterName: inviter?.name || m.invitedBy,
+        createdAt: m.createdAt,
+      };
+    });
 
-</body></html>`;
+  // Count stats from all invite tokens
+  const allInvites = members.flatMap((m) => m.generatedInvites);
+  const stats = {
+    totalInviters: inviters.length,
+    totalGuests: guests.length,
+    pending: allInvites.filter((i) => i.status === "pending").length,
+    used: allInvites.filter((i) => i.status === "used").length,
+    expired: allInvites.filter((i) => i.status === "expired").length,
+    revoked: allInvites.filter((i) => i.status === "revoked").length,
+  };
 
-  return new NextResponse(html, {
-    headers: { "Content-Type": "text/html" },
-  });
+  return NextResponse.json({ inviters, guests, stats });
+}
+
+export async function POST(request: NextRequest) {
+  const payload = await checkAdmin(request);
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { action } = body;
+
+  if (action === "revoke_token") {
+    const { tokenId } = body;
+    const token = await prisma.inviteToken.findUnique({ where: { id: tokenId } });
+    if (!token || token.status !== "pending") {
+      return NextResponse.json({ error: "Token not found or not pending" }, { status: 400 });
+    }
+    await prisma.inviteToken.update({
+      where: { id: tokenId },
+      data: { status: "revoked" },
+    });
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "set_allowance") {
+    const { memberId, count } = body;
+    if (typeof count !== "number" || count < 0) {
+      return NextResponse.json({ error: "Invalid count" }, { status: 400 });
+    }
+    await prisma.member.update({
+      where: { id: memberId },
+      data: { inviteAllowance: count },
+    });
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "delete_guest") {
+    const { memberId } = body;
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: { invitedBy: true },
+    });
+    if (!member?.invitedBy) {
+      return NextResponse.json({ error: "Not a guest member" }, { status: 400 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete related records
+      await tx.pushSubscription.deleteMany({ where: { memberId } });
+      await tx.checkIn.deleteMany({ where: { memberId } });
+      await tx.renewalRequest.deleteMany({ where: { memberId } });
+
+      // Reset the invite token that created this guest
+      await tx.inviteToken.updateMany({
+        where: { usedByMemberId: memberId },
+        data: { usedByMemberId: null, usedBy: null, usedAt: null, status: "pending" },
+      });
+
+      // Delete the member
+      await tx.member.delete({ where: { id: memberId } });
+    });
+
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "generate_invite") {
+    const { memberId } = body;
+    const inviteToken = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    await prisma.inviteToken.create({
+      data: {
+        token: inviteToken,
+        generatedBy: memberId,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = request.headers.get("x-forwarded-host")
+      ? `https://${request.headers.get("x-forwarded-host")}`
+      : new URL(request.url).origin;
+
+    return NextResponse.json({
+      success: true,
+      token: inviteToken,
+      inviteUrl: `${baseUrl}/invite/${inviteToken}`,
+    });
+  }
+
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }
