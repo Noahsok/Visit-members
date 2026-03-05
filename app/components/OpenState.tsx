@@ -296,7 +296,7 @@ export default function OpenState({
           bottom: 0,
           zIndex: 100,
           backgroundColor: "#f4f2ec",
-          padding: "16px 20px 32px",
+          padding: "16px 20px 76px",
         }}
       >
         {!isCheckedIn && (
