@@ -33,6 +33,10 @@ export async function GET(request: NextRequest) {
       status: true,
       createdAt: true,
       usedAt: true,
+      expiresAt: true,
+      invitee: {
+        select: { name: true },
+      },
     },
   });
 
@@ -42,7 +46,14 @@ export async function GET(request: NextRequest) {
     allowance: member.inviteAllowance,
     remaining: member.inviteAllowance - invites.length,
     used: usedCount,
-    invites,
+    invites: invites.map((i) => ({
+      token: i.token,
+      status: i.status,
+      createdAt: i.createdAt,
+      usedAt: i.usedAt,
+      expiresAt: i.expiresAt,
+      inviteeName: i.invitee?.name || null,
+    })),
   });
 }
 

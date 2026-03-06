@@ -5,13 +5,26 @@ import type { MemberData } from "../types";
 
 interface InviteData {
   token: string;
-  status: "pending" | "used" | "expired";
+  status: "pending" | "used" | "expired" | "revoked";
   createdAt: string;
   usedAt: string | null;
+  expiresAt: string | null;
+  inviteeName: string | null;
 }
 
 interface InviteSectionProps {
   member: MemberData;
+}
+
+function daysUntil(dateStr: string): number {
+  const now = new Date();
+  const target = new Date(dateStr);
+  return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
+}
+
+function formatFirstName(name: string | null): string {
+  if (!name) return "";
+  return name.split(" ")[0];
 }
 
 export default function InviteSection({ member }: InviteSectionProps) {
@@ -60,7 +73,6 @@ export default function InviteSection({ member }: InviteSectionProps) {
 
       if (res.ok) {
         const data = await res.json();
-        // Copy to clipboard
         try {
           await navigator.clipboard.writeText(data.inviteUrl);
           setCopied("new");
@@ -88,6 +100,20 @@ export default function InviteSection({ member }: InviteSectionProps) {
     }
   };
 
+  const handleShare = async (inviteToken: string) => {
+    const url = `${window.location.origin}/invite/${inviteToken}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ url });
+      } catch {
+        // user cancelled or not supported
+        handleCopy(inviteToken);
+      }
+    } else {
+      handleCopy(inviteToken);
+    }
+  };
+
   if (!loaded) return null;
 
   return (
@@ -97,26 +123,15 @@ export default function InviteSection({ member }: InviteSectionProps) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 12,
+          marginBottom: 14,
         }}
       >
-        <span
-          style={{
-            fontFamily: "system-ui",
-            fontSize: 10,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-            opacity: 0.6,
-          }}
-        >
-          Invites
-        </span>
+        <span style={labelStyle}>Invites</span>
         <span
           style={{
             fontFamily: "system-ui",
             fontSize: 11,
-            opacity: 0.5,
+            opacity: 0.4,
           }}
         >
           {remaining} of {member.inviteAllowance} remaining
@@ -138,7 +153,7 @@ export default function InviteSection({ member }: InviteSectionProps) {
             fontWeight: 500,
             cursor: generating ? "default" : "pointer",
             opacity: generating ? 0.5 : 1,
-            marginBottom: 10,
+            marginBottom: 14,
           }}
         >
           {generating
@@ -149,58 +164,136 @@ export default function InviteSection({ member }: InviteSectionProps) {
         </button>
       )}
 
-      {invites.map((invite, i) => (
-        <div
-          key={invite.token}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "8px 0",
-            borderTop:
-              i > 0 ? "1px solid rgba(244,242,236,0.06)" : undefined,
-          }}
-        >
-          <span
+      {invites.map((invite) => {
+        const isPending = invite.status === "pending";
+        const isUsed = invite.status === "used";
+        const isExpired = invite.status === "expired";
+        const isRevoked = invite.status === "revoked";
+        const daysLeft = invite.expiresAt ? daysUntil(invite.expiresAt) : null;
+
+        return (
+          <div
+            key={invite.token}
             style={{
-              fontFamily: "system-ui",
-              fontSize: 12,
-              opacity: 0.5,
+              padding: "12px 0",
+              borderTop: "1px solid rgba(244,242,236,0.06)",
             }}
           >
-            Invite {invites.length - i}
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
+            {/* Top row: status + name or expiry */}
+            <div
               style={{
-                fontFamily: "system-ui",
-                fontSize: 11,
-                textTransform: "capitalize",
-                opacity: invite.status === "used" ? 0.3 : 0.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: isPending ? 8 : 0,
               }}
             >
-              {invite.status}
-            </span>
-            {invite.status === "pending" && (
-              <button
-                onClick={() => handleCopy(invite.token)}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  style={{
+                    fontFamily: "system-ui",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: isUsed
+                      ? "rgba(130,200,130,0.7)"
+                      : isExpired || isRevoked
+                        ? "rgba(244,242,236,0.25)"
+                        : "rgba(244,242,236,0.5)",
+                  }}
+                >
+                  {invite.status}
+                </span>
+                {isUsed && invite.inviteeName && (
+                  <span
+                    style={{
+                      fontFamily: "system-ui",
+                      fontSize: 13,
+                      color: "rgba(244,242,236,0.7)",
+                    }}
+                  >
+                    {formatFirstName(invite.inviteeName)} joined
+                  </span>
+                )}
+              </div>
+
+              {isPending && daysLeft !== null && (
+                <span
+                  style={{
+                    fontFamily: "system-ui",
+                    fontSize: 10,
+                    color:
+                      daysLeft <= 5
+                        ? "rgba(200,130,130,0.7)"
+                        : "rgba(244,242,236,0.3)",
+                  }}
+                >
+                  {daysLeft}d left
+                </span>
+              )}
+            </div>
+
+            {/* Pending: show link + share/copy */}
+            {isPending && (
+              <div
                 style={{
-                  background: "none",
-                  border: "1px solid rgba(244,242,236,0.15)",
-                  color: "#f4f2ec",
-                  fontFamily: "system-ui",
-                  fontSize: 10,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  opacity: 0.6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                {copied === invite.token ? "Copied" : "Copy"}
-              </button>
+                <div
+                  style={{
+                    flex: 1,
+                    fontFamily: "monospace",
+                    fontSize: 11,
+                    color: "rgba(244,242,236,0.3)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {window.location.origin}/invite/{invite.token.slice(0, 8)}...
+                </div>
+                <button
+                  onClick={() => handleShare(invite.token)}
+                  style={actionBtnStyle}
+                >
+                  {copied === invite.token ? "Copied" : "Share"}
+                </button>
+                <button
+                  onClick={() => handleCopy(invite.token)}
+                  style={actionBtnStyle}
+                >
+                  {copied === invite.token ? "Copied" : "Copy"}
+                </button>
+              </div>
             )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: "system-ui",
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+  opacity: 0.6,
+};
+
+const actionBtnStyle: React.CSSProperties = {
+  background: "none",
+  border: "1px solid rgba(244,242,236,0.15)",
+  color: "#f4f2ec",
+  fontFamily: "system-ui",
+  fontSize: 10,
+  padding: "4px 10px",
+  cursor: "pointer",
+  opacity: 0.6,
+  flexShrink: 0,
+};
