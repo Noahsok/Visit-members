@@ -11,6 +11,26 @@ interface InviteData {
   usedAt: string | null;
   expiresAt: string | null;
   inviteeName: string | null;
+  inviteePhone: string | null;
+  inviteeTier: string | null;
+  inviteeJoinedAt: string | null;
+}
+
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const d = digits.length > 10 ? digits.slice(-10) : digits;
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 interface InviteDrawerProps {
@@ -196,35 +216,30 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
                       alignItems: "center",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <span
+                    <div>
+                      <div
                         style={{
                           fontFamily: "system-ui",
                           fontSize: 13,
                           color: "rgba(244,242,236,0.5)",
                         }}
                       >
-                        Invite link
-                      </span>
+                        Sent {timeAgo(invite.createdAt)}
+                      </div>
                       {daysLeft !== null && (
-                        <span
+                        <div
                           style={{
                             fontFamily: "system-ui",
-                            fontSize: 10,
+                            fontSize: 11,
                             color:
                               daysLeft <= 5
                                 ? "rgba(200,130,130,0.7)"
                                 : "rgba(244,242,236,0.25)",
+                            marginTop: 2,
                           }}
                         >
-                          {daysLeft}d left
-                        </span>
+                          Expires in {daysLeft}d
+                        </div>
                       )}
                     </div>
 
@@ -273,35 +288,56 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
                     borderTop: "1px solid rgba(244,242,236,0.06)",
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
+                    gap: 10,
                   }}
                 >
                   <div
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 32,
+                      height: 32,
                       borderRadius: "50%",
                       background: "rgba(130,200,130,0.15)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontFamily: "system-ui",
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 600,
                       color: "rgba(130,200,130,0.8)",
+                      flexShrink: 0,
                     }}
                   >
                     {invite.inviteeName?.[0]?.toUpperCase() || "?"}
                   </div>
-                  <span
-                    style={{
-                      fontFamily: "system-ui",
-                      fontSize: 14,
-                      color: "rgba(244,242,236,0.7)",
-                    }}
-                  >
-                    {invite.inviteeName || "Someone"}
-                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        fontFamily: "system-ui",
+                        fontSize: 14,
+                        color: "rgba(244,242,236,0.8)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {invite.inviteeName || "Someone"}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "system-ui",
+                        fontSize: 11,
+                        color: "rgba(244,242,236,0.3)",
+                        marginTop: 2,
+                        display: "flex",
+                        gap: 8,
+                      }}
+                    >
+                      {invite.inviteePhone && (
+                        <span>{formatPhone(invite.inviteePhone)}</span>
+                      )}
+                      {invite.inviteeJoinedAt && (
+                        <span>Joined {timeAgo(invite.inviteeJoinedAt)}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

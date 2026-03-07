@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       usedAt: true,
       expiresAt: true,
       invitee: {
-        select: { name: true },
+        select: { name: true, phone: true, tier: true, createdAt: true },
       },
     },
   });
@@ -53,6 +53,9 @@ export async function GET(request: NextRequest) {
       usedAt: i.usedAt,
       expiresAt: i.expiresAt,
       inviteeName: i.invitee?.name || null,
+      inviteePhone: i.invitee?.phone || null,
+      inviteeTier: i.invitee?.tier || null,
+      inviteeJoinedAt: i.invitee?.createdAt || null,
     })),
   });
 }
