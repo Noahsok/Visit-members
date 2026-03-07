@@ -28,7 +28,6 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
   const [invites, setInvites] = useState<InviteData[]>([]);
   const [remaining, setRemaining] = useState(0);
   const [generating, setGenerating] = useState(false);
-  const [copied, setCopied] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const fetchInvites = async () => {
@@ -70,26 +69,11 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
 
       if (res.ok) {
         const data = await res.json();
-        // Try native share first, fall back to clipboard
         if (navigator.share) {
           try {
             await navigator.share({ url: data.inviteUrl });
           } catch {
-            try {
-              await navigator.clipboard.writeText(data.inviteUrl);
-              setCopied("new");
-              setTimeout(() => setCopied(null), 2000);
-            } catch {
-              // fallback
-            }
-          }
-        } else {
-          try {
-            await navigator.clipboard.writeText(data.inviteUrl);
-            setCopied("new");
-            setTimeout(() => setCopied(null), 2000);
-          } catch {
-            // fallback
+            // user cancelled share
           }
         }
         await fetchInvites();
@@ -107,21 +91,8 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
       try {
         await navigator.share({ url });
       } catch {
-        handleCopy(inviteToken);
+        // user cancelled share
       }
-    } else {
-      handleCopy(inviteToken);
-    }
-  };
-
-  const handleCopy = async (inviteToken: string) => {
-    const url = `${window.location.origin}/invite/${inviteToken}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(inviteToken);
-      setTimeout(() => setCopied(null), 2000);
-    } catch {
-      // fallback
     }
   };
 
@@ -154,7 +125,7 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
               lineHeight: 1.05,
             }}
           >
-            {loaded ? `${remaining} remaining` : "..."}
+            {loaded ? `${Math.max(0, remaining)} remaining` : "..."}
           </div>
           <div
             style={{
@@ -189,11 +160,7 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
                 borderRadius: 0,
               }}
             >
-              {generating
-                ? "Generating..."
-                : copied === "new"
-                  ? "Link copied!"
-                  : "Generate invite link"}
+              {generating ? "Generating..." : "Generate invite link"}
             </button>
           )}
 
@@ -274,7 +241,7 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
                         cursor: "pointer",
                       }}
                     >
-                      {copied === invite.token ? "Copied" : "Share"}
+                      Share
                     </button>
                   </div>
                 );

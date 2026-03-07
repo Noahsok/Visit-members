@@ -339,7 +339,7 @@ export default function Home() {
               letterSpacing: "0.02em",
             }}
           >
-            Invite friends
+            {member.inviteAllowance} {member.inviteAllowance === 1 ? "invite" : "invites"}
           </button>
         )}
 
