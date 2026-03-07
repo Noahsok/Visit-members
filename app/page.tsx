@@ -6,6 +6,7 @@ import ClosedState from "./components/ClosedState";
 import OpenState from "./components/OpenState";
 import CheckInDrawer from "./components/CheckInDrawer";
 import MemberDrawer from "./components/MemberDrawer";
+import InviteDrawer from "./components/InviteDrawer";
 import InstallPrompt from "./components/InstallPrompt";
 
 type AppState = "loading" | "closed" | "open" | "at-visit";
@@ -16,6 +17,7 @@ export default function Home() {
   const [guestCount, setGuestCount] = useState(0);
   const [showMemberDrawer, setShowMemberDrawer] = useState(false);
   const [showCheckInDrawer, setShowCheckInDrawer] = useState(false);
+  const [showInviteDrawer, setShowInviteDrawer] = useState(false);
 
   // Content state
   const [nextOpen, setNextOpen] = useState("");
@@ -307,6 +309,45 @@ export default function Home() {
         >
           Checked in
         </div>
+      )}
+
+      {/* Invite friends floating button — bottom right */}
+      {member &&
+        member.inviteAllowance > 0 &&
+        !member.invitedBy &&
+        state !== "loading" &&
+        state !== "at-visit" &&
+        !showCheckInDrawer &&
+        !showMemberDrawer &&
+        !showInviteDrawer && (
+          <button
+            onClick={() => setShowInviteDrawer(true)}
+            style={{
+              position: "fixed",
+              bottom: 28,
+              right: 20,
+              fontFamily: "system-ui",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#1a1a1a",
+              background: "#f4f2ec",
+              border: "none",
+              padding: "10px 20px",
+              cursor: "pointer",
+              zIndex: 50,
+              letterSpacing: "0.02em",
+            }}
+          >
+            Invite friends
+          </button>
+        )}
+
+      {/* Invite drawer */}
+      {showInviteDrawer && member && (
+        <InviteDrawer
+          member={member}
+          onClose={() => setShowInviteDrawer(false)}
+        />
       )}
 
       {/* Member drawer overlay */}
