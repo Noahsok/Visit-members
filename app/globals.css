@@ -154,18 +154,22 @@ body {
 }
 
 /* Input styling */
+input[type="text"],
 input[type="tel"] {
   width: 100%;
   padding: 14px 0;
   border: none;
   border-bottom: 2px solid currentColor;
+  border-radius: 0;
   background: transparent;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 18px;
   color: inherit;
   outline: none;
+  -webkit-appearance: none;
 }
 
+input[type="text"]::placeholder,
 input[type="tel"]::placeholder {
   color: inherit;
   opacity: 0.3;
