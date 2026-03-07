@@ -60,18 +60,42 @@ export async function POST(request: NextRequest) {
       // Use grantAllowance from token (admin invites grant 3), otherwise 0
       const memberAllowance = invite.grantAllowance ?? 0;
 
-      // Create member
-      const member = await tx.member.create({
-        data: {
-          name: name.trim(),
-          phone: formattedPhone,
-          tier: "classic",
-          appAccess: "approved",
-          inviteAllowance: memberAllowance,
-          guestAllowance: 0,
-          invitedBy: invite.generator?.id || null,
+      // Check if a member with this phone already exists (avoid duplicates)
+      const existing = await tx.member.findFirst({
+        where: {
+          OR: [
+            { phone: formattedPhone },
+            { phone: digits },
+            { phone: `+1${digits}` },
+          ],
         },
       });
+
+      let member;
+      if (existing) {
+        // Link existing member — grant app access + invite allowance
+        member = await tx.member.update({
+          where: { id: existing.id },
+          data: {
+            appAccess: "approved",
+            inviteAllowance: existing.inviteAllowance + memberAllowance,
+            invitedBy: existing.invitedBy || invite.generator?.id || null,
+          },
+        });
+      } else {
+        // Create new member
+        member = await tx.member.create({
+          data: {
+            name: name.trim(),
+            phone: formattedPhone,
+            tier: "classic",
+            appAccess: "approved",
+            inviteAllowance: memberAllowance,
+            guestAllowance: 0,
+            invitedBy: invite.generator?.id || null,
+          },
+        });
+      }
 
       // Mark invite as used
       await tx.inviteToken.update({
@@ -90,8 +114,8 @@ export async function POST(request: NextRequest) {
     // Sign JWT
     const jwt = await signToken({
       memberId: result.member.id,
-      squareCustomerId: null,
-      tier: "classic",
+      squareCustomerId: result.member.squareCustomerId || null,
+      tier: result.member.tier,
       name: result.member.name,
       venueId,
     });
@@ -104,8 +128,8 @@ export async function POST(request: NextRequest) {
         name: result.member.name,
         firstName: nameParts[0] || "",
         lastName: nameParts.slice(1).join(" ") || "",
-        tier: "classic",
-        guestAllowance: 0,
+        tier: result.member.tier,
+        guestAllowance: result.member.guestAllowance,
         joinedAt: result.member.joinedAt,
         expirationDate: null,
       },
