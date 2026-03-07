@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     allowance: member.inviteAllowance,
-    remaining: member.inviteAllowance - invites.length,
+    remaining: member.inviteAllowance,
     used: usedCount,
     invites: invites.map((i) => ({
       token: i.token,
@@ -80,11 +80,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
-  const existingCount = await prisma.inviteToken.count({
-    where: { generatedBy: payload.memberId },
-  });
-
-  if (existingCount >= member.inviteAllowance) {
+  if (member.inviteAllowance <= 0) {
     return NextResponse.json(
       { error: "No invites remaining" },
       { status: 403 }
@@ -95,13 +91,20 @@ export async function POST(request: NextRequest) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
 
-  await prisma.inviteToken.create({
-    data: {
-      token: inviteToken,
-      generatedBy: payload.memberId,
-      expiresAt,
-    },
-  });
+  // Create invite token and decrement allowance in one transaction
+  await prisma.$transaction([
+    prisma.inviteToken.create({
+      data: {
+        token: inviteToken,
+        generatedBy: payload.memberId,
+        expiresAt,
+      },
+    }),
+    prisma.member.update({
+      where: { id: payload.memberId },
+      data: { inviteAllowance: { decrement: 1 } },
+    }),
+  ]);
 
   const baseUrl = request.headers.get("x-forwarded-host")
     ? `https://${request.headers.get("x-forwarded-host")}`
@@ -110,6 +113,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     token: inviteToken,
     inviteUrl: `${baseUrl}/invite/${inviteToken}`,
-    remaining: member.inviteAllowance - existingCount - 1,
+    remaining: member.inviteAllowance - 1,
   });
 }

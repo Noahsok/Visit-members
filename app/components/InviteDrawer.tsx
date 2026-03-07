@@ -147,19 +147,6 @@ export default function InviteDrawer({ member, onClose }: InviteDrawerProps) {
           >
             {loaded ? `${Math.max(0, remaining)} remaining` : "..."}
           </div>
-          <div
-            style={{
-              fontFamily: "system-ui",
-              fontSize: 13,
-              color: "rgba(244,242,236,0.4)",
-              marginTop: 8,
-              lineHeight: 1.4,
-            }}
-          >
-            Share an exclusive invite link with someone you think would love
-            Visit.
-          </div>
-
           {/* Generate button */}
           {loaded && remaining > 0 && (
             <button
