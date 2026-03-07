@@ -6,6 +6,7 @@ import ClosedState from "./components/ClosedState";
 import OpenState from "./components/OpenState";
 import CheckInDrawer from "./components/CheckInDrawer";
 import MemberDrawer from "./components/MemberDrawer";
+import InstallPrompt from "./components/InstallPrompt";
 
 type AppState = "loading" | "closed" | "open" | "at-visit";
 
@@ -321,6 +322,9 @@ export default function Home() {
           }}
         />
       )}
+
+      {/* Install to home screen prompt */}
+      {member && !showCheckInDrawer && !showMemberDrawer && <InstallPrompt />}
     </>
   );
 }

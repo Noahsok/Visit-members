@@ -46,12 +46,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Format inviter name as "First L."
-  const nameParts = invite.generator.name.split(" ");
-  const inviterName =
-    nameParts.length > 1
-      ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
-      : nameParts[0];
+  // Format inviter name as "First L." — admin invites show "Visit"
+  let inviterName = "Visit";
+  if (invite.generator) {
+    const nameParts = invite.generator.name.split(" ");
+    inviterName =
+      nameParts.length > 1
+        ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
+        : nameParts[0];
+  }
 
   return NextResponse.json({
     valid: true,

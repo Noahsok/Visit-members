@@ -57,16 +57,19 @@ export async function POST(request: NextRequest) {
       let formattedPhone = digits;
       if (digits.length === 10) formattedPhone = "+1" + digits;
 
-      // Create member as guest
+      // Use grantAllowance from token (admin invites grant 3), otherwise 0
+      const memberAllowance = invite.grantAllowance ?? 0;
+
+      // Create member
       const member = await tx.member.create({
         data: {
           name: name.trim(),
           phone: formattedPhone,
           tier: "classic",
           appAccess: "approved",
-          inviteAllowance: 0,
+          inviteAllowance: memberAllowance,
           guestAllowance: 0,
-          invitedBy: invite.generator.id,
+          invitedBy: invite.generator?.id || null,
         },
       });
 
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return { member, inviterName: invite.generator.name };
+      return { member, inviterName: invite.generator?.name || "Visit" };
     });
 
     // Sign JWT
