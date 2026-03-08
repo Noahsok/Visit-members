@@ -287,36 +287,11 @@ export default function Home() {
         </button>
       )}
 
-      {/* Checked in tag — bottom right when at visit */}
-      {state === "at-visit" && !showCheckInDrawer && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 28,
-            right: 20,
-            fontFamily: "system-ui",
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            color: "#f4f2ec",
-            background: "#1a1a1a",
-            padding: "6px 14px",
-            borderRadius: 20,
-            opacity: 0.5,
-            zIndex: 50,
-          }}
-        >
-          Checked in
-        </div>
-      )}
-
       {/* Invite friends floating button — bottom right */}
       {member &&
         member.inviteAllowance > 0 &&
         !member.invitedBy &&
         state !== "loading" &&
-        state !== "at-visit" &&
         !showCheckInDrawer &&
         !showMemberDrawer &&
         !showInviteDrawer && (
@@ -342,6 +317,32 @@ export default function Home() {
             {member.inviteAllowance} {member.inviteAllowance === 1 ? "invite" : "invites"}
           </button>
         )}
+
+      {/* Checked in tag — bottom right when at visit, only if no invite button */}
+      {state === "at-visit" &&
+        !showCheckInDrawer &&
+        !(member && member.inviteAllowance > 0 && !member.invitedBy) && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 28,
+            right: 20,
+            fontFamily: "system-ui",
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            color: "#f4f2ec",
+            background: "#1a1a1a",
+            padding: "6px 14px",
+            borderRadius: 20,
+            opacity: 0.5,
+            zIndex: 50,
+          }}
+        >
+          Checked in
+        </div>
+      )}
 
       {/* Invite drawer */}
       {showInviteDrawer && member && (
