@@ -318,14 +318,12 @@ export default function Home() {
           </button>
         )}
 
-      {/* Checked in tag — bottom right when at visit, only if no invite button */}
-      {state === "at-visit" &&
-        !showCheckInDrawer &&
-        !(member && member.inviteAllowance > 0 && !member.invitedBy) && (
+      {/* Checked in tag — top right when at visit */}
+      {state === "at-visit" && !showCheckInDrawer && (
         <div
           style={{
             position: "fixed",
-            bottom: 28,
+            top: 20,
             right: 20,
             fontFamily: "system-ui",
             fontSize: 11,
