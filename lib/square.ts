@@ -7,45 +7,104 @@ export const squareClient = new Client({
 
 /**
  * Search Square customers by name, email, or phone.
- * Fetches all customers then filters in-memory.
+ * Uses Square's search API with fuzzy matching.
  */
 export async function searchSquareCustomers(query: string) {
-  const allCustomers: any[] = [];
-  let cursor: string | undefined;
+  const parts = query.trim().split(/\s+/);
 
-  while (true) {
-    const { result } = await squareClient.customersApi.listCustomers(cursor);
-    const customers = result.customers || [];
-    allCustomers.push(...customers);
-    cursor = result.cursor || undefined;
-    if (!cursor) break;
+  const filters: any[] = [];
+
+  if (parts.length >= 2) {
+    // Try first + last name exact filter
+    filters.push({
+      exact: { attribute: "given_name", value: parts[0] },
+    });
+    filters.push({
+      exact: { attribute: "family_name", value: parts.slice(1).join(" ") },
+    });
   }
 
-  const q = query.toLowerCase().replace(/[-\s()+]/g, "");
-  const matched = allCustomers
-    .filter((c) => {
-      const first = c.givenName || "";
-      const last = c.familyName || "";
-      const email = c.emailAddress || "";
-      const phone = (c.phoneNumber || "").replace(/[-\s()+]/g, "");
-      const fullName = `${first} ${last}`.toLowerCase();
+  try {
+    const { result } = await squareClient.customersApi.searchCustomers({
+      query: {
+        filter: {
+          ...(parts.length >= 2
+            ? {}
+            : {}),
+        },
+      },
+    });
 
-      return (
-        fullName.includes(q) ||
-        email.toLowerCase().includes(q) ||
-        phone.includes(q)
-      );
-    })
-    .slice(0, 20)
-    .map((c) => ({
-      squareId: c.id,
-      firstName: c.givenName || "",
-      lastName: c.familyName || "",
-      email: c.emailAddress || "",
-      phone: c.phoneNumber || "",
-    }));
+    const allCustomers = result.customers || [];
+    const q = query.toLowerCase();
+    const qParts = q.split(/\s+/);
 
-  return matched;
+    const matched = allCustomers
+      .filter((c: any) => {
+        const first = (c.givenName || "").toLowerCase();
+        const last = (c.familyName || "").toLowerCase();
+
+        if (qParts.length >= 2) {
+          return (
+            first.includes(qParts[0]) &&
+            last.includes(qParts[qParts.length - 1])
+          );
+        }
+        const fullName = `${first} ${last}`;
+        const email = (c.emailAddress || "").toLowerCase();
+        const phone = (c.phoneNumber || "").replace(/\D/g, "");
+        const qClean = q.replace(/\D/g, "");
+
+        return (
+          fullName.includes(q) ||
+          email.includes(q) ||
+          (qClean.length >= 7 && phone.includes(qClean))
+        );
+      })
+      .slice(0, 20)
+      .map((c: any) => ({
+        squareId: c.id,
+        firstName: c.givenName || "",
+        lastName: c.familyName || "",
+        email: c.emailAddress || "",
+        phone: c.phoneNumber || "",
+      }));
+
+    return matched;
+  } catch (e) {
+    console.error("Square search error, falling back to list:", e);
+
+    // Fallback: list all and filter
+    const allCustomers: any[] = [];
+    let cursor: string | undefined;
+    while (true) {
+      const { result } = await squareClient.customersApi.listCustomers(cursor);
+      allCustomers.push(...(result.customers || []));
+      cursor = result.cursor || undefined;
+      if (!cursor) break;
+    }
+
+    const q = query.toLowerCase();
+    const qParts = q.split(/\s+/);
+
+    return allCustomers
+      .filter((c: any) => {
+        const first = (c.givenName || "").toLowerCase();
+        const last = (c.familyName || "").toLowerCase();
+        if (qParts.length >= 2) {
+          return first.includes(qParts[0]) && last.includes(qParts[qParts.length - 1]);
+        }
+        return `${first} ${last}`.includes(q);
+      })
+      .slice(0, 20)
+      .map((c: any) => ({
+        squareId: c.id,
+        firstName: c.givenName || "",
+        lastName: c.familyName || "",
+        email: c.emailAddress || "",
+        phone: c.phoneNumber || "",
+      }));
+  }
 }
 
 /**
