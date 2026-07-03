@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(
 export interface TokenPayload {
   memberId: string;
   squareCustomerId: string | null;
-  tier: "classic" | "enthusiast";
+  tier: "one" | "classic" | "enthusiast";
   name: string;
   venueId: string;
 }

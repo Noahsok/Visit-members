@@ -546,6 +546,7 @@ enum BatchStatus {
 }
 
 enum MemberTier {
+  one
   classic
   enthusiast
 }
