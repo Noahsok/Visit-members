@@ -139,7 +139,10 @@ export async function POST(request: NextRequest) {
       console.error("Customer group error (non-fatal):", e);
     }
 
-    const venueId = await getDefaultVenueId();
+    let venueId: string | null = null;
+    try {
+      venueId = await getDefaultVenueId();
+    } catch {}
 
     // Upsert local member record
     const guestAllowance =
@@ -167,16 +170,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Record in signups table
-    await prisma.signup.create({
-      data: {
-        firstName,
-        lastName,
-        email: email || null,
-        phone: phone || null,
-        venueId,
-      },
-    });
+    // Record in signups table (skip if no venue configured)
+    if (venueId) {
+      await prisma.signup.create({
+        data: {
+          firstName,
+          lastName,
+          email: email || null,
+          phone: phone || null,
+          venueId,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
