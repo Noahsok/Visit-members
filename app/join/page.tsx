@@ -82,7 +82,8 @@ export default function JoinPage() {
   const [confirmData, setConfirmData] = useState<any>(null);
 
   // Sign in
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFirst, setSearchFirst] = useState("");
+  const [searchLast, setSearchLast] = useState("");
   const [searchResult, setSearchResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
 
@@ -166,12 +167,14 @@ export default function JoinPage() {
   }
 
   async function doSearch() {
-    const q = searchQuery.trim();
-    if (!q) return;
+    const first = searchFirst.trim();
+    const last = searchLast.trim();
+    if (!first || !last) return;
 
     setSearching(true);
     setSearchResult(null);
 
+    const q = `${first} ${last}`;
     try {
       const res = await fetch(
         `/api/pwa/search?q=${encodeURIComponent(q)}`
@@ -707,7 +710,7 @@ export default function JoinPage() {
               Sign in if you&rsquo;re a member. Join if you&rsquo;re new.
             </p>
             <div style={{ display: "flex", gap: 14, marginTop: 44, flexWrap: "wrap" }}>
-              <button className="join-btn" onClick={() => { setSearchQuery(""); setSearchResult(null); go("signin"); }}>
+              <button className="join-btn" onClick={() => { setSearchFirst(""); setSearchLast(""); setSearchResult(null); go("signin"); }}>
                 Sign in
               </button>
               <button className="join-btn solid" onClick={startJoin}>
@@ -927,11 +930,18 @@ export default function JoinPage() {
                 Find <em>yourself</em>.
               </h2>
               <div className="join-field" style={{ marginTop: 26 }}>
-                <label>Phone or name</label>
+                <label>First name</label>
                 <input
-                  placeholder="Phone number"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchFirst}
+                  onChange={(e) => setSearchFirst(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && doSearch()}
+                />
+              </div>
+              <div className="join-field">
+                <label>Last name</label>
+                <input
+                  value={searchLast}
+                  onChange={(e) => setSearchLast(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && doSearch()}
                 />
               </div>
