@@ -47,13 +47,22 @@ export async function POST(request: NextRequest) {
     const noteText = `Start: ${startDate} | Expires: ${expirationStr} | Tier: ${memberTier}`;
 
     // Check if this phone already exists in Square
-    const existing = await squareClient.customersApi.listCustomers();
-    const allCustomers = existing.result.customers || [];
+    const allCustomers: any[] = [];
+    let cursor: string | undefined;
+    while (true) {
+      const { result: listResult } = await squareClient.customersApi.listCustomers(cursor);
+      allCustomers.push(...(listResult.customers || []));
+      cursor = listResult.cursor || undefined;
+      if (!cursor) break;
+    }
     const phoneDigits = phone.replace(/\D/g, "");
-    const existingCustomer = allCustomers.find((c: any) => {
-      const cp = (c.phoneNumber || "").replace(/\D/g, "");
-      return cp.includes(phoneDigits) || phoneDigits.includes(cp.slice(-10));
-    });
+    const existingCustomer = phoneDigits.length >= 7
+      ? allCustomers.find((c: any) => {
+          const cp = (c.phoneNumber || "").replace(/\D/g, "");
+          if (!cp || cp.length < 7) return false;
+          return cp.slice(-10) === phoneDigits.slice(-10);
+        })
+      : undefined;
 
     let customerId: string;
 
