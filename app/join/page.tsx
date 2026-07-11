@@ -203,6 +203,19 @@ export default function JoinPage() {
           isReturn: true,
           isActive: true,
         });
+
+        // Notify visit-door dashboard
+        fetch("/api/pwa/door-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            memberId: member.squareId || "",
+            memberName: member.name,
+            memberEmail: member.email || "",
+            tier: member.tier || "classic",
+          }),
+        }).catch(() => {});
+
         go("confirm");
       } else {
         // Lapsed — send to tier picker with prefill

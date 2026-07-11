@@ -192,6 +192,31 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Notify visit-door dashboard (best-effort)
+    const doorUrl = process.env.VISIT_DOOR_URL;
+    if (doorUrl) {
+      try {
+        await Promise.all([
+          fetch(`${doorUrl}/api/checkin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              memberId: customerId,
+              memberName: `${firstName} ${lastName}`.trim(),
+              memberEmail: email || "",
+              tier: memberTier,
+              isNew: true,
+            }),
+          }),
+          fetch(`${doorUrl}/api/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ firstName, lastName, email, phone }),
+          }),
+        ]);
+      } catch {}
+    }
+
     return NextResponse.json({
       success: true,
       member: {
