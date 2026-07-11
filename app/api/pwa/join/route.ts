@@ -192,30 +192,53 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Notify visit-door dashboard (best-effort)
+    // Notify dashboards (best-effort)
     const doorUrl = process.env.VISIT_DOOR_URL;
+    const platformUrl = process.env.VISIT_PLATFORM_URL;
+    const notifyPayload = {
+      firstName,
+      lastName,
+      email: email || "",
+      phone: phone || "",
+      tier: memberTier,
+      squareCustomerId: customerId,
+      isNew: true,
+    };
+
+    const notifications: Promise<any>[] = [];
+
     if (doorUrl) {
-      try {
-        await Promise.all([
-          fetch(`${doorUrl}/api/checkin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              memberId: customerId,
-              memberName: `${firstName} ${lastName}`.trim(),
-              memberEmail: email || "",
-              tier: memberTier,
-              isNew: true,
-            }),
+      notifications.push(
+        fetch(`${doorUrl}/api/checkin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            memberId: customerId,
+            memberName: `${firstName} ${lastName}`.trim(),
+            memberEmail: email || "",
+            tier: memberTier,
+            isNew: true,
           }),
-          fetch(`${doorUrl}/api/signup`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ firstName, lastName, email, phone }),
-          }),
-        ]);
-      } catch {}
+        }).catch(() => {}),
+        fetch(`${doorUrl}/api/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, email, phone }),
+        }).catch(() => {})
+      );
     }
+
+    if (platformUrl) {
+      notifications.push(
+        fetch(`${platformUrl}/api/join-notify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(notifyPayload),
+        }).catch(() => {})
+      );
+    }
+
+    await Promise.all(notifications);
 
     return NextResponse.json({
       success: true,
